@@ -1,0 +1,43 @@
+---
+title: "Segregation"
+author: "Erik B. Johnson, PhD"
+date: "March 14, 2017"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(zipcode)
+library(ggmap)
+library(googleway)
+library(data.table)
+library(rgdal)
+library(rgeos)
+source('functions.segregation.R')
+source('locations.segregation.R')
+api.key <- 'AIzaSyCM8GU5qrdryH0Sa9LyTskuAIhOjVDI35M'
+```
+
+# Description
+
+Basic framework for the segregation paper. Start with a simple example in Richmond.
+
+## Distance (travel time) calculations
+
+```{r dists.richmond}
+dists.richmond <- funDists.richmond()
+```
+
+## Census In
+
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

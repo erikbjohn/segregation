@@ -1,0 +1,5 @@
+combs.richmond.centroids.location <- 'CleanData/combs.richmond.centroids.rdata'
+dists.richmond.location <- 'CleanData/dists.richmond.rdata'
+shapes.richmond.tracts.location <- 'CleanData/shapes.richmond.tracts.rdata'
+shapes.richmond.centroids.location <- 'CleanData/shapes.richmond.centroids.rdata'
+shapes.proj.env.location <- 'CleanData/shapes.proj.env.rds'
