@@ -1,3 +1,80 @@
+funCensus <- function(){
+    if (file.exists(census.location)){
+        load(census.location)
+    } else {
+        l.census <- list(commute=funCensus.commute(),income=funCensus.income(), race=funCensus.race())
+        l.census <- lapply(l.census, function(x) setkey(x, tract))
+        census <- Reduce(function(...) merge(..., all = T), l.census)
+        # Subset to richmond (study area tracts)
+        richmond.tracts <- funDists.richmond()
+        richmond.tracts <- unique(richmond.tracts$dest.tract)
+        census <- census[tract %in% richmond.tracts]
+        # Clean up NAs (it is only tract 51087980100 for richmond)
+        census <- census[!is.na(census$income.med.hh)]
+        save(census, file=census.location)
+    }
+    return(census)
+}
+funCensus.commute <- function(){
+    if(file.exists(census.commute.location)){
+        load(census.commute.location)
+    } else {
+        dt <- fread('RawData/census/aff_download/ACS_15_5YR_B08119_with_ann.csv', skip = 1)
+        dt.cols <- fread('RawData/census/aff_download/ACS_15_5YR_B08119_metadata.csv', header = FALSE)
+        setnames(dt.cols, names(dt.cols), c('code', 'descr'))
+        setnames(dt, names(dt), dt.cols$code)
+        census.commute <- dt[, .(tract = as.character(GEO.id2), bus.n = HD01_VD29, walk.n = HD01_VD38, car.n = HD01_VD11, carpool.n = HD01_VD20)]
+        census.commute <- census.commute[, modes.total.n:=(bus.n + walk.n + car.n + carpool.n)]
+        cols.names.append <- names(census.commute)[!str_detect(names(census.commute), '(tract|commute)')]
+        setnames(census.commute, cols.names.append, paste0('commute.', cols.names.append))
+        save(census.commute, file=census.commute.location)
+    }
+    return(census.commute)
+}
+funCensus.income <- function(){
+    if(file.exists(census.income.location)){
+        load(census.income.location)
+    } else {
+        dt <- fread('RawData/census/aff_download/ACS_15_5YR_S1903_with_ann.csv', skip = 2)
+        dt.cols <- fread('RawData/census/aff_download/ACS_15_5YR_S1903_metadata.csv', header = FALSE)
+        setnames(dt.cols, names(dt.cols), c('code', 'descr'))
+        setnames(dt, names(dt), dt.cols$code)
+        census.income <- suppressWarnings(dt[, .(tract = as.character(GEO.id2), income.med.hh=as.integer(HC02_EST_VC02))])
+        save(census.income, file=census.income.location)
+    }
+    return(census.income)
+}
+funCensus.race<- function(){
+    if(file.exists(census.race.location)){
+        load(census.race.location)
+    } else {
+        dt <- fread('RawData/census/aff_download/ACS_15_5YR_B02001.csv', skip = 2)
+        dt.cols <- suppressWarnings(fread('RawData/census/aff_download/ACS_15_5YR_B02001_metadata.csv', header = FALSE))
+        setnames(dt.cols, names(dt.cols), c('code', 'descr'))
+        setnames(dt, names(dt), dt.cols$code)
+        census.race <- dt[, .(tract = as.character(GEO.id2), race.total.n=HD01_VD01, white.n=HD01_VD02, black.n=HD01_VD03, native.n = HD01_VD04, 
+                              asian.n=HD01_VD05, hawaiian.n=HD01_VD06, race.other.n = HD01_VD07, race.mix.n = HD01_VD08 + HD01_VD09 + HD01_VD10)]
+        cols.names.append <- names(census.race)[!str_detect(names(census.race), '(tract|race)')]
+        setnames(census.race, cols.names.append, paste0('race.', cols.names.append))
+        save(census.race, file=census.race.location)
+    }
+    return(census.race)
+}
+funCensus.tables <- function(){
+    files <- list.files('RawData/census/aff_download/')
+    files <- paste0('RawData/census/aff_download/', files[which(str_detect(files, 'ACS.*.txt'))])
+    f.descr <- lapply(files, function(x) data.table(table = readLines(x)[1], descr = readLines(x)[2]))
+    dt.descr <- rbindlist(f.descr, use.names = TRUE)
+    dt.descr <- dt.descr[ , descr:= str_to_title(descr)]
+    dt.descr <- dt.descr[, descr:=str_trim(str_replace(descr, '\\(In 2015 Inflation-Adjusted Dollars\\)', ''))]
+    dt.descr <- dt.descr[, descr:=str_trim(str_replace(descr, 'In The Past 12 Months', ''))]
+    dt.descr <- dt.descr[, descr:=str_trim(str_replace(descr, 'Population 16 Years And Over', ''))]
+    dt.descr <- dt.descr[descr=='Race', census.prefix := 'race.']
+    dt.descr <- dt.descr[table=='S1903', census.prefix := 'income.med.']
+    dt.descr <- dt.descr[table=='B08119', census.prefix := 'commute.']
+    dt.descr <- dt.descr[is.na(census.prefix), census.prefix:='']
+    return(dt.descr)
+}
 funCombs.richmond.centroids <- function(){
     if(file.exists(combs.richmond.centroids.location)){
         load(combs.richmond.centroids.location)
@@ -48,25 +125,72 @@ funDists.richmond <- function(){
     if (file.exists(dists.richmond.location)){
         load(dists.richmond.location)
     } else {
-        combs.richmond.centroids <- funCombs.richmond.centroids()
-        shapes.richmond.centroids <- funShapes.richmond.centroids()
-        lookup.table <- data.table(shapes.richmond.centroids@data, as.data.table(shapes.richmond.centroids@coords))
-        funLookup.assign <- function(DT){
-            setkey(DT, GEOID)
-            setkey(lookup.table, GEOID)
-            DT.return <- lookup.table[DT][order(id)]
-            DT.return$id <- NULL
-            return(DT.return)
+        if (file.exists(dists.richmond.raw.location)){
+            dists.richmond <- readRDS(dists.richmond.raw.location)
+        } else {
+            combs.richmond.centroids <- funCombs.richmond.centroids()
+            shapes.richmond.centroids <- funShapes.richmond.centroids()
+            lookup.table <- data.table(shapes.richmond.centroids@data, as.data.table(shapes.richmond.centroids@coords))
+            funLookup.assign <- function(DT){
+                setkey(DT, GEOID)
+                setkey(lookup.table, GEOID)
+                DT.return <- lookup.table[DT][order(id)]
+                DT.return$id <- NULL
+                return(DT.return)
+            }
+            id = 1:nrow(combs.richmond.centroids)
+            l.GEOIDS <- list(data.table(id = id, GEOID = combs.richmond.centroids$GEOID.1),
+                             data.table(id = id, GEOID = combs.richmond.centroids$GEOID.2))
+            l.coords <- lapply(l.GEOIDS, function(x) funLookup.assign(x))
+            dists.google <- funDists.google(l.coords)
+            dists.richmond <- dists.google
+            # Location for query result description:
+            # https://developers.google.com/maps/documentation/distance-matrix/intro#DirectionsResponseElements
+            setnames(dists.richmond, names(dists.richmond), c('dest.address', 'origin.address', 'status', 'miles.text', 'meters',
+                                                              'minutes.text', 'seconds', 'minutes.text.traffic', 'seconds.traffic',
+                                                              'row.element.status', 'mode', 'origin.tract', 'dest.tract'))
+            saveRDS(dists.richmond, file=dists.richmond.raw.location)
         }
-        id = 1:nrow(combs.richmond.centroids)
-        l.GEOIDS <- list(data.table(id = id, GEOID = combs.richmond.centroids$GEOID.1),
-                         data.table(id = id, GEOID = combs.richmond.centroids$GEOID.2))
-        l.coords <- lapply(l.GEOIDS, function(x) funLookup.assign(x))
-        dists.google <- funDists.google(l.coords)
-        dists.richmond <- dists.google
+        dists.list <- list()
+        dists.richmond <- dists.richmond[, meters:=as.numeric(meters)]
+        dists.richmond <- dists.richmond[, seconds:=as.numeric(seconds)]
+        dists.list$meters <- spread(dists.richmond[, .(origin.tract, dest.tract, mode, meters)], mode, meters)
+        dists.list$meters <- dists.list$meters[is.na(transit), transit:=walking]
+        modes <- c('driving', 'transit', 'walking')
+        setnames(dists.list$meters, modes, paste0(modes, '.meters'))
+        dists.list$seconds <- spread(dists.richmond[, .(origin.tract, dest.tract, mode, seconds)], mode, seconds)
+        dists.list$seconds <- dists.list$seconds[is.na(transit), transit:=walking]
+        setnames(dists.list$seconds, modes, paste0(modes, '.seconds'))
+        dists.list <- lapply(dists.list, function(x) setkey(x, origin.tract, dest.tract))
+        dists.richmond <- Reduce(function(...) merge(..., all = T), dists.list)
+        dists.richmond <- dists.richmond[, .(origin.tract, dest.tract, driving.meters, driving.seconds,
+                                             transit.meters, transit.seconds,
+                                             walking.meters, walking.seconds)]
         save(dists.richmond, file = dists.richmond.location)
     }
     return(dists.richmond)
+}
+funMeasures.dissimlarity <- function(dt){
+    # Calculate all of the dissimilarity indices in the seq package
+    l.dissim <- list()
+    # Prepare tract shapefile
+    shp.tracts <- funShapes.richmond.tracts()
+    shp.tracts@data <- select(shp.tracts@data, which(names(shp.tracts@data)=='GEOID'))
+    # Create race combinations
+    cols.race <- names(dt)[str_detect(names(dt),'race.*.n') & names(dt)!='race.total.n']
+    race.pairs <- combn(cols.race, 2, simplify=FALSE)
+    l.shapes <- list()
+    funDissimlarity <- function(pair, dt, shp.tract){
+        cols <- c('tract', pair)
+        dt.pair <- dt[, cols, with=FALSE]
+        shp.tract@data <- merge(x=shp.tract@data, y=dt.pair, by.x='GEOID', by.y='tract')
+        dissim(x=shp.tract, data=shp.tract@data[, 2:3])
+    }
+    l.race <- lapply(race.pairs, function(x) funDissimlarity(pair=x, dt, shp.tracts = shp.tracts))
+    
+    shp.tracts@data <- merge(x=shp.tracts@data, y=dt, by.x='GEOID', by.y='tract')
+    
+    l.dissim <- lapply(race.pairs, function(x) dissim(data=dt[, x, with=FALSE]))
 }
 funShapes.coords2points <- function(DT){
     coords <- cbind(Longitude = as.numeric(as.character(DT$long)),

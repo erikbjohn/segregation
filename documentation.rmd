@@ -1,8 +1,14 @@
 ---
-title: "Segregation"
-author: "Erik B. Johnson, PhD"
-date: "March 14, 2017"
-output: pdf_document
+title: "Segregation Empirical Work"
+author: "Erik B. Johnson and Santiago Pinto"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+header-includes: 
+  - \usepackage{dcolumn}
+urlcolor: "blue"
+output: 
+    pdf_document:
+    toc: true
+    number_sections: true
 ---
 
 ```{r setup, include=FALSE}
@@ -14,30 +20,104 @@ library(googleway)
 library(data.table)
 library(rgdal)
 library(rgeos)
+library(utils)
+library(stringr)
+library(xtable)
+library(stargazer)
+library(seg)
+suppressMessages(library(bit64))
 source('functions.segregation.R')
-source('locations.segregation.R')
+#source('locations.segregation.R')
 api.key <- 'AIzaSyCM8GU5qrdryH0Sa9LyTskuAIhOjVDI35M'
+
+# File Locations
+combs.richmond.centroids.location <- 'CleanData/combs.richmond.centroids.rdata'
+dists.richmond.location <- 'CleanData/dists.richmond.rdata'
+dists.richmond.raw.location <- 'CleanData/dists.richmond.raw.rds'
+census.location <- 'CleanData/census.rdata'
+census.commute.location<- 'CleanData/census.commute.rdata'
+census.income.location <- 'CleanData/census.income.rdata'
+census.race.location <- 'CleanData/census.race.rdata'
+shapes.richmond.tracts.location <- 'CleanData/shapes.richmond.tracts.rdata'
+shapes.richmond.centroids.location <- 'CleanData/shapes.richmond.centroids.rdata'
+shapes.proj.env.location <- 'CleanData/shapes.proj.env.rds'
 ```
 
 # Description
 
-Basic framework for the segregation paper. Start with a simple example in Richmond.
+Data work and documentation for the Richmond transportation/segregation paper.
 
-## Distance (travel time) calculations
+# Background
 
-```{r dists.richmond}
+Really seems that we should focus on the commuting component of transportation (empirical and theoretical reasons.)
+
+This is a list of possible sources to help motivate our paper.
+
+*   [Commuting to Opportunity](`r URLencode('https://web.stanford.edu/group/scspi/_media/pdf/key_issues/transportation_policy.pdf')`)
+*   [Commuting in America](`r URLencode('http://traveltrends.transportation.org/Documents/CA10-4.pdf')`)
+*   [Low income commuters and Cycling](`r URLencode('https://www.citylab.com/transportation/2014/07/how-low-income-commuters-view-cycling/374390/')`)
+
+\clearpage
+
+# Data
+
+## Google [dists.richmond]
+```{r dists.richmond, echo=FALSE}
 dists.richmond <- funDists.richmond()
 ```
 
-## Census In
+First, use google travel times to build \textbf{dists.richmond} for distances (meters) and travel times (seconds) by mode to and from all census tracts.
+Based on tract-centroids to tract-centroids. Distance is non-euclidean. For google distance and time calculation documentation see: 
+[Google distance api documentation](`r URLencode('https://developers.google.com/maps/documentation/distance-matrix/intro')`)
 
+Summary statistics for \textbf{dists.richmond} (where NA transit values default to walking values):
+```{r results='asis', echo=FALSE}
+stargazer(dists.richmond, summary=TRUE, header=FALSE, nobs=FALSE, digits=0, align=T, style='qje', title='Pairwise Distance Summary')
+```
+Correlation matrix for \textbf{dists.richmond}
+```{r results='asis', echo=FALSE}
+cols <- names(dists.richmond)[which(lapply(dists.richmond, class)=='numeric')]
+correlation.matrix <- cor(dists.richmond[, cols, with=FALSE])
+colnames(correlation.matrix) <- str_replace_all(colnames(correlation.matrix), '.meters', '.m')
+colnames(correlation.matrix) <- str_replace_all(colnames(correlation.matrix), '.seconds', '.s')
+stargazer(correlation.matrix, header=FALSE, digits=3, align=T, style='qje', title='Distance Correlation Matrix')
+```
+\clearpage
 
-## Including Plots
+## Census [census]
 
-You can also embed plots, for example:
+The \textbf{census} dataset consists of the following fields:
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r results='asis', echo=FALSE}
+census <- funCensus()
+stargazer(census, summary=TRUE, header=FALSE, nobs=FALSE, digits=0, align=T, style='qje', title='Tract Level Summary Statistics')
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+The construction of the census table is documented in Table \ref{dt.census}. For more specifics see \textit{funCensus.income, funCensus.commute, funCensus.race} in the file \texttt{functions.segregation.R}. 
+
+```{r results='asis', echo=FALSE}
+cap <- '2011-2015 ACS 5-Year Estimates, Geography: Tract'
+x.out <- capture.output(print(xtable(funCensus.tables(), caption = cap, label='dt.census'),  include.rownames=FALSE, comment=FALSE, caption.placement = 'top'))
+cat(x.out,sep = '\n')
+```
+
+\clearpage
+
+# Measuring segregation
+
+We begin by estimating the amount of segregation in the city with a variety of traditional segregation measures (from the R library \texttt{seg})\footnote{Documentation and explaination at (http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0113767) and Reardon and O'Sullivan (2004)}. Interestingly, there have been a variety of measures which include a variety of spatial terms that uses information on neighbors and shared borders. These measures are, however, fundamentally different from our new one since spatial distance is a matrix that incorporates a variety travel times between tracts over the entire city. 
+
+
+## Dissimilarity
+
+We begin by calculating a simple dissimlarity index between two groups $X$ and $Y$ described in Equation \eqref{eq:D}. Where $x_i$ and $y_i$ are the respective population counts in each location $i$. Note again that this measure is inherently aspatial and only uses the tract level census data. Note that the 'nb' term in \texttt{seg} library scales the interaction of the iteraction is normalized to 1 and not appropriate for our application. Additional information on the library can be found at [Stanford Tutorial page](http://stanford.edu/~ejdemyr/r-tutorials/segregation/).
+
+\begin{equation}\label{eq:D}
+D = \frac{1}{2}\sum_{i=1}^n\left|\frac{x_i}{X}- \frac{y_i}{Y}\right|
+\end{equation}
+
+```{r dissimilarity}
+dissimlarity <- funMeasures.dissimlarity(census)
+```
+
+
