@@ -25,6 +25,8 @@ library(stringr)
 library(xtable)
 library(stargazer)
 library(seg)
+library(transport)
+library(stats) # For reshape
 suppressMessages(library(bit64))
 source('functions.segregation.R')
 #source('locations.segregation.R')
@@ -38,6 +40,7 @@ census.location <- 'CleanData/census.rdata'
 census.commute.location<- 'CleanData/census.commute.rdata'
 census.income.location <- 'CleanData/census.income.rdata'
 census.race.location <- 'CleanData/census.race.rdata'
+measures.wasserstein.location <- 'CleanData/measures.wassersteing.rdata'
 shapes.richmond.tracts.location <- 'CleanData/shapes.richmond.tracts.rdata'
 shapes.richmond.centroids.location <- 'CleanData/shapes.richmond.centroids.rdata'
 shapes.proj.env.location <- 'CleanData/shapes.proj.env.rds'
@@ -109,15 +112,29 @@ We begin by estimating the amount of segregation in the city with a variety of t
 
 
 ## Dissimilarity
-
-We begin by calculating a simple dissimlarity index between two groups $X$ and $Y$ described in Equation \eqref{eq:D}. Where $x_i$ and $y_i$ are the respective population counts in each location $i$. Note again that this measure is inherently aspatial and only uses the tract level census data. Note that the 'nb' term in \texttt{seg} library scales the interaction of the iteraction is normalized to 1 and not appropriate for our application. Additional information on the library can be found at [Stanford Tutorial page](http://stanford.edu/~ejdemyr/r-tutorials/segregation/).
+```{r, echo=FALSE}
+dissimilarity <- funMeasures.dissimlarity(census)
+```
+We begin by calculating a simple dissimlarity index between two groups $X$ and $Y$ in locations $i$ described in Equation \eqref{eq:D}. Higher values of dissimilarity imply more wihtin tract race distributions. Note again that this measure is inherently aspatial and only uses the tract level census data. Note that the 'nb' term in \texttt{seg} library scales the interaction of the iteraction is normalized to 1 and not appropriate for our application. Additional information on the library can be found at the [Stanford Dissimilarity](http://stanford.edu/~ejdemyr/r-tutorials/segregation/). Empirical results are shown in Table \ref{tbl:D}. We can see that the most spatially dissimilar races according to this measure are `r paste0(dissimilarity[1, .(race.1, race.2)], collapse = ' and ')` with a value of `r round(dissimilarity$D[1],2)`. 
 
 \begin{equation}\label{eq:D}
 D = \frac{1}{2}\sum_{i=1}^n\left|\frac{x_i}{X}- \frac{y_i}{Y}\right|
 \end{equation}
 
-```{r dissimilarity}
-dissimlarity <- funMeasures.dissimlarity(census)
+```{r tbl:D, results='asis', echo=FALSE}
+cap <- 'Dissimilarity Index'
+lab <- 'tbl:D'
+x.out <- capture.output(print(xtable(dissimilarity, caption = cap, label=lab),  include.rownames=FALSE, comment=FALSE, caption.placement = 'top', round=2))
+cat(x.out,sep = '\n')
 ```
+
+## Wasserstein Measure
+```{r, eval=TRUE}
+l.wasserstein <- funMeasures.wasserstein(census, dists.richmond)
+```
+The two main drawbacks of the $D$ measure are the lack of spatial information (distance) between populations and the fact that there is no direction implied in the relationship. Next, we measure dissimilarity through a Wasserstein measure, which will include both the spatial information and has the ability to infer directional relationships in the form of an asymmetric graph. This is a two stage process and requires careful selection of counterfactuals.  We begin with the most simple formulation\footnote{The Wasserstein measure is found in the R  \texttt{transport} package.}.
+
+
+
 
 
