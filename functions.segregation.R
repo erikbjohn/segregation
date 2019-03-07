@@ -95,7 +95,7 @@ funDists.google <- function(l.coords){
         }
         loc.1 <- l.coords[[1]][i.comb]
         loc.2 <- l.coords[[2]][i.comb]
-        pair.name.location <- paste0('RawData/dists.google/', loc.1$GEOID, '.', loc.2$GEOID, '.rds')
+        pair.name.location <- paste0('RawData/dists_google_new/', loc.1$GEOID, '.', loc.2$GEOID, '.rds')
         # Check to see if exists
         if (file.exists(pair.name.location)){
             DT <- readRDS(pair.name.location)

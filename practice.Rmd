@@ -1,0 +1,16 @@
+---
+title: "practice"
+author: "EC 471 Spring 2019"
+date: "February 13, 2019"
+output: 
+    pdf_document:
+        keep_tex: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction
+
+this is the introduction
