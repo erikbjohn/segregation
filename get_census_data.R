@@ -20,7 +20,18 @@ head(test)
 # Check to see if number changes over time?
 #saveRDS(study_county_fips, file='CleanData/study_county_fips.rds')
 
-study_county_fips <- readRDS('CleanData/study_county_fips.rds')
+# Create the county fips file:
+if(!file.exists('CleanData/study_county_fips.rds')){
+    load(shapes.richmond.tracts.location)
+    dt_richmond <- as.data.table(shapes.richmond.tracts@data)
+    study_county_fips <- unique(dt_richmond$COUNTYFP)
+    saveRDS(study_county_fips, 'CleanData/study_county_fips.rds')
+} else {
+    study_county_fips <- readRDS('CleanData/study_county_fips.rds')  
+}
+
+
+
 
 pc.Inc.15<-data.table(get_acs(geography = "tract",
                               state = "VA",
