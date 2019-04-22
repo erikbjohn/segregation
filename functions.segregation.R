@@ -137,7 +137,9 @@ funDists.google <- function(l.coords){
         }
         l.combs[[i.comb]] <- DT
     }
-    return(rbindlist(l.combs, use.names = TRUE, fill=TRUE))
+    dt_combs <- rbindlist(l.combs, use.names = TRUE, fill=TRUE)
+    saveRDS(dt_combs, 'CleanData/dist.richomnd.new.rds')
+    return(dt_combs)
 }
 funDists.richmond <- function(){
     if (file.exists(dists.richmond.new.location)){
