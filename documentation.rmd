@@ -31,12 +31,14 @@ suppressMessages(library(bit64))
 source('functions.segregation.R')
 
 #source('locations.segregation.R')
-api.key <- 'AIzaSyCM8GU5qrdryH0Sa9LyTskuAIhOjVDI35M'
+load('~/Dropbox/pkg.data/api.keys/raw/l.pkg.rdata')
+api.key <- l.pkg$google
 
 # File Locations
 combs.richmond.centroids.location <- 'CleanData/combs.richmond.centroids.rdata'
 dists.richmond.location <- 'CleanData/dists.richmond.rdata'
-dists.richmond.raw.location <- 'CleanData/dists.richmond.raw.rds'
+dists.richmond.new.location <- 'CleanData/dists.richmond.new.rdata'
+dists.richmond.raw.new.location <- 'CleanData/dists.richmond.raw.new.rds'
 census.location <- 'CleanData/census.rdata'
 census.commute.location<- 'CleanData/census.commute.rdata'
 census.income.location <- 'CleanData/census.income.rdata'

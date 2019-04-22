@@ -88,18 +88,27 @@ funCombs.richmond.centroids <- function(){
 }
 funDists.google <- function(l.coords){
     l.combs <- list()
-    modes <- c('driving', 'transit', 'walking')
+    # modes <- c('driving', 'transit', 'walking')
+    modes <- 'transit'
     for (i.comb in 1:nrow(l.coords[[1]])){
+    #for (i.comb in 1:20){
         if ((i.comb %% 100)==0){
             cat(i.comb, 'of', nrow(l.coords[[1]]),'\n')
         }
+        log_status_good <- TRUE
         loc.1 <- l.coords[[1]][i.comb]
         loc.2 <- l.coords[[2]][i.comb]
         pair.name.location <- paste0('RawData/dists_google_new/', loc.1$GEOID, '.', loc.2$GEOID, '.rds')
-        # Check to see if exists
-        if (file.exists(pair.name.location)){
+        
+        log_file_exists <- file.exists(pair.name.location)
+        if (log_file_exists == TRUE){
             DT <- readRDS(pair.name.location)
-        } else {
+            log_status_good <- !(DT$status %in% c('OVER_QUERY_LIMIT','REQUEST_DENIED'))
+            if(log_status_good==FALSE){
+                cat('OLD STATUS:', DT$status, ': Rerunning', pair.name.location, '\n')
+            }
+        } 
+        if(log_status_good==FALSE | log_file_exists==FALSE) {
             locA <- c(loc.1$Latitude, loc.1$Longitude)
             locB <- c(loc.2$Latitude, loc.2$Longitude)
             funGoogle.call <- function(locA, locB, mode, api.key){
@@ -115,18 +124,27 @@ funDists.google <- function(l.coords){
             DT <- rbindlist(l.Google.distance, use.names = TRUE, fill = TRUE)
             DT$GEOID.1 <- loc.1$GEOID
             DT$GEOID.2 <- loc.2$GEOID
+            log_status_good <- !(DT$status %in% 'OVER_QUERY_LIMIT')
+            if(log_status_good==FALSE){
+                cat('STOP: OVER_QUERY_LIMIT ', i.comb)
+                stop
+            } else { 
+                cat('RERUN STATUS: ', DT$status, '\n')
+            }
             saveRDS(DT, file=pair.name.location)
+        } else {
+            cat('GOOD: ', pair.name.location, '\n')
         }
         l.combs[[i.comb]] <- DT
     }
     return(rbindlist(l.combs, use.names = TRUE, fill=TRUE))
 }
 funDists.richmond <- function(){
-    if (file.exists(dists.richmond.location)){
-        load(dists.richmond.location)
+    if (file.exists(dists.richmond.new.location)){
+        load(dists.richmond.new.location)
     } else {
-        if (file.exists(dists.richmond.raw.location)){
-            dists.richmond <- readRDS(dists.richmond.raw.location)
+        if (file.exists(dists.richmond.raw.new.location)){
+            dists.richmond <- readRDS(dists.richmond.raw.new.location)
         } else {
             combs.richmond.centroids <- funCombs.richmond.centroids()
             shapes.richmond.centroids <- funShapes.richmond.centroids()
