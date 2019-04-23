@@ -1,6 +1,6 @@
 ---
 title: "Segregation Empirical Work"
-author: "Erik B. Johnson and Santiago Pinto"
+author: "Erik B. Johnson"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 header-includes: 
   - \usepackage{dcolumn}
@@ -27,8 +27,11 @@ library(stargazer)
 library(seg)
 library(transport)
 library(stats) # For reshape
+library(rgdal)
+library(maptools)
+library(plyr)
 suppressMessages(library(bit64))
-source('functions.segregation.R')
+
 
 #source('locations.segregation.R')
 load('~/Dropbox/pkg.data/api.keys/raw/l.pkg.rdata')
@@ -47,6 +50,12 @@ measures.wasserstein.location <- 'CleanData/measures.wassersteing.rdata'
 shapes.richmond.tracts.location <- 'CleanData/shapes.richmond.tracts.rdata'
 shapes.richmond.centroids.location <- 'CleanData/shapes.richmond.centroids.rdata'
 shapes.proj.env.location <- 'CleanData/shapes.proj.env.rds'
+
+f_list <- paste0('R/', list.files('R'))
+for(file in f_list){
+    cat(file, '\n')
+    source(file)
+}
 ```
 
 # Description
@@ -67,9 +76,9 @@ This is a list of possible sources to help motivate our paper.
 
 # Data
 
-## Google [dists.richmond]
+## Change in Travel times
 ```{r dists.richmond, echo=FALSE}
-dists.richmond <- funDists.richmond()
+l_dists_richmond <- funDistances_combine()
 ```
 
 First, use google travel times to build \textbf{dists.richmond} for distances (meters) and travel times (seconds) by mode to and from all census tracts.
@@ -78,21 +87,35 @@ Based on tract-centroids to tract-centroids. Distance is non-euclidean. For goog
 
 Summary statistics for \textbf{dists.richmond} (where NA transit values default to walking values):
 ```{r results='asis', echo=FALSE}
-stargazer(dists.richmond, summary=TRUE, header=FALSE, nobs=FALSE, digits=0, align=T, style='qje', title='Pairwise Distance Summary')
+dt_dists <- rbindlist(l_dists_richmond, use.names=TRUE, fill=TRUE)
+dt_cast <- dcast(dt_dists, origin.tract + dest.tract ~ mode + scrapeDate, value.var='distance_seconds')
+stargazer(dt_cast, summary=TRUE, header=FALSE, nobs=FALSE, digits=0, align=T, style='qje', title=paste0('Pairwise Distance Summary'))
 ```
-Correlation matrix for \textbf{dists.richmond}
+
+Change in Travel times
+
 ```{r results='asis', echo=FALSE}
-cols <- names(dists.richmond)[which(lapply(dists.richmond, class)=='numeric')]
-correlation.matrix <- cor(dists.richmond[, cols, with=FALSE])
-colnames(correlation.matrix) <- str_replace_all(colnames(correlation.matrix), '.meters', '.m')
-colnames(correlation.matrix) <- str_replace_all(colnames(correlation.matrix), '.seconds', '.s')
-stargazer(correlation.matrix, header=FALSE, digits=3, align=T, style='qje', title='Distance Correlation Matrix')
+dt_transit <- dt_cast[, .(origin.tract, dest.tract, seconds2017 = `transit_03-2017`, seconds2018 = `transit_03-2018`)]
+dt_transit <- dt_transit[, pct_increase:=(seconds2018-seconds2017)/seconds2017]
+dt_transit <- dt_transit[pct_increase != 0]
+ggplot2::ggplot(dt_transit, aes(pct_increase*100)) + geom_histogram(bins=50) + xlab('Percent change tract to tract Public Transit Times 2017 to 2019') + geom_vline(xintercept=0, color='white')
+ggsave('Figures/hist_pctChng_transitTimes.pdf')
 ```
 
-```{r}
-knitr::kable(correlation.matrix)
+
+# Which tracts have the largest changes in travel times?
+```{r results='asis', echo=FALSE}
+dt_origin_changes <- dt_transit[, .(mean_pct_increase=mean(pct_increase), sd_pct_increase=sd(pct_increase)), by=origin.tract][order(-mean_pct_increase)]
+# Plot these
+shps <- funShapes.richmond.tracts()
+shp_fortify <- fortify(shps, region='GEOID')
+setnames(dt_origin_changes, 'origin.tract', 'id')
+tracts.df <- join(dt_origin_changes, shp_fortify, by='id')
+
+ggplot(tracts.df, aes(long, lat, group=group, fill=mean_pct_increase)) +  geom_polygon() + coord_equal() 
 
 ```
+
 \clearpage
 
 ## Census [census]
