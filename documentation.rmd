@@ -106,14 +106,19 @@ ggsave('Figures/hist_pctChng_transitTimes.pdf')
 # Which tracts have the largest changes in travel times?
 ```{r results='asis', echo=FALSE}
 dt_origin_changes <- dt_transit[, .(mean_pct_increase=mean(pct_increase), sd_pct_increase=sd(pct_increase)), by=origin.tract][order(-mean_pct_increase)]
+
+
 # Plot these
 shps <- funShapes.richmond.tracts()
 shp_fortify <- fortify(shps, region='GEOID')
 setnames(dt_origin_changes, 'origin.tract', 'id')
 tracts.df <- join(dt_origin_changes, shp_fortify, by='id')
-
+census <- funCensus()
+setnames(census, 'tract', 'id')
+tracts.df <- join(census, tracts.df, by='id')
+tracts.df$pct_black <- tracts.df$black.n/tracts.df$race.total.n
 ggplot(tracts.df, aes(long, lat, group=group, fill=mean_pct_increase)) +  geom_polygon() + coord_equal() 
-
+ggplot(tracts.df, aes(long,lat, group=group, fill=pct_black))+geom_polygon() + coord_equal()
 ```
 
 \clearpage
