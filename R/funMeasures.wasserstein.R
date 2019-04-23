@@ -2,10 +2,11 @@ funMeasures.wasserstein <- function(dt.census, dt.costs){
     if (file.exists(measures.wasserstein.location)){
         load(measures.wasserstein.location)
     } else {
+        dt.costs <- dcast(dt.costs, origin.tract + dest.tract ~ mode, value.var='distance_seconds')
         # Clean and prepare dt.census
-        cols.race <- names(dt)[str_detect(names(dt),'race.*.n') & names(dt)!='race.total.n']
+        cols.race <- names(dt.census)[str_detect(names(dt.census),'race.*.n') & names(dt.census)!='race.total.n']
         ## Subset to only include races with at least 1% of the total population
-        l.race.n.total <- unlist(lapply(cols.race, function(x) sum(dt[,(x), with=FALSE])))
+        l.race.n.total <- unlist(lapply(cols.race, function(x) sum(dt.census[,(x), with=FALSE])))
         l.race.share.total <- l.race.n.total/sum(l.race.n.total)
         cols.race <- cols.race[which(l.race.share.total>0.01)]
         race.pairs <- combn(cols.race, 2, simplify=FALSE)

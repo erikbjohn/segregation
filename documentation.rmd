@@ -166,7 +166,10 @@ cat(x.out,sep = '\n')
 
 ## Wasserstein Measure
 ```{r, eval=FALSE}
-l.wasserstein <- funMeasures.wasserstein(census, dists.richmond)
+l.wasserstein <- list()
+for(dists.richmond in l_dists_richmond){
+    l.wasserstein <- funMeasures.wasserstein(census, dists.richmond)
+}
 ```
 The two main drawbacks of the $D$ measure are the lack of spatial information (distance) between populations and the fact that there is no direction implied in the relationship. Next, we measure dissimilarity through a Wasserstein measure, which will include both the spatial information and has the ability to infer directional relationships in the form of an asymmetric graph. This is a two stage process and requires careful selection of counterfactuals.  We begin with the most simple formulation\footnote{The Wasserstein measure is found in the R  \texttt{transport} package.}.
 

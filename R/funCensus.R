@@ -19,8 +19,8 @@ funCensus <- function(){
         
         # Race Variables
         setnames(census, c('Whites', 'Blacks', 'Asians', 'Hispanics'), 
-                 c('white.n', 'black.n', 'asian.n', 'hispanic.n'))
-        census <- census[, race.total.n := white.n + black.n + asian.n + hispanic.n]
+                 c('race.white.n', 'race.black.n', 'race.asian.n', 'race.hispanic.n'))
+        census <- census[, race.total.n :=race.white.n + race.black.n + race.asian.n + race.hispanic.n]
         
         # Tract
         census <- census[, tract:=as.character(GEOID)]
@@ -36,7 +36,7 @@ funCensus <- function(){
         census <- census[, .(tract,
                              income.med.hh,
                              bus.n, walk.n, car.n, carpool.n, mean.census.commute.time,
-                             white.n, black.n, asian.n, hispanic.n, race.total.n,
+                             race.white.n, race.black.n, race.asian.n, race.hispanic.n, race.total.n,
                              industry.total.industry.n, industry.affhm.n, industry.construction.n,                
                              industry.manufacturing.n, industry.wholesale.n, industry.retail.n,                  
                              industry.transportation.and.warehouse.n, industry.information.n, industry.finance.n,                
