@@ -10,6 +10,8 @@ funDistances_combine <- function(){
         l_old$walking <- dt_old[, .(scrapeDate, origin.tract, dest.tract, mode='walking', distance_meters=walking.meters, distance_seconds=walking.seconds)]
         l_old$driving <- dt_old[, .(scrapeDate, origin.tract, dest.tract, mode='driving', distance_meters=driving.meters, distance_seconds=driving.seconds)]
         dt_old <- rbindlist(l_old, use.names = TRUE, fill=TRUE)
+        dt_old_comb <- dt_old[, .(scrapeDate, origin.tract=dest.tract, dest.tract=origin.tract, mode, distance_meters, distance_seconds)]
+        dt_old <- rbindlist(list(dt_old, dt_old_comb), use.names = TRUE, fill=TRUE)
         
         l_new <- list()
         dt_new <- readRDS('CleanData//dist.richomnd.new.rds')
@@ -32,9 +34,12 @@ funDistances_combine <- function(){
         dt_new <- rbindlist(list(dt_new_missing, dt_new_not_missing), use.names = TRUE, fill=TRUE)
         dt_new <- dt_new[, .(scrapeDate, origin.tract, dest.tract, mode='transit', distance_meters, distance_seconds)]
         l_new$transit <- dt_new
-        l_new$walking <- l_old$walking[, scrapeDate:='03-2018']
-        l_new$driving <- l_old$driving[, scrapeDate:='03-2018']
+        l_new$walking <- l_old$walking[, scrapeDate:='03-2019']
+        l_new$driving <- l_old$driving[, scrapeDate:='03-2019']
         dt_new <- rbindlist(l_new, use.names = TRUE, fill=TRUE)
+        dt_new_comb <- dt_new[, .(scrapeDate, origin.tract=dest.tract, dest.tract=origin.tract, mode, distance_meters, distance_seconds)]
+        dt_new <- rbindlist(list(dt_new, dt_new_comb), use.names = TRUE, fill=TRUE)
+        
         
         l_dt <- list(dt_old, dt_new)
         saveRDS(l_dt, file=distances_combine_location)
