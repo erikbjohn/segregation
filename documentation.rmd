@@ -107,7 +107,6 @@ ggsave('Figures/hist_pctChng_transitTimes.pdf')
 ```{r results='asis', echo=FALSE}
 dt_origin_changes <- dt_transit[, .(mean_pct_increase=mean(pct_increase), sd_pct_increase=sd(pct_increase)), by=origin.tract][order(-mean_pct_increase)]
 
-
 # Plot these
 shps <- funShapes.richmond.tracts()
 shp_fortify <- fortify(shps, region='GEOID')

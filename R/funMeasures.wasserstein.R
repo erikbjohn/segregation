@@ -23,7 +23,16 @@ funMeasures.wasserstein <- function(dt.census, dt.costs){
         }
         
         ## Make dt.costs symmetric (for transformation to square matrix)
-        cols.costs <- names(dt.costs)[!str_detect(names(dt.costs), 'tract')]
+        dt.costs.diag <- data.table(origin.tract=dt.census.tracts, dest.tract=dt.census.tracts, driving=0, transit=0, walking=0)
+        dt.costs <- rbindlist(list(dt.costs, dt.costs.diag), use.names = TRUE, fill=TRUE)  
+        setkey(dt.costs, origin.tract, dest.tract)
+        
+        
+        
+        
+        
+        dt.costs.diag <- dt.costs.dage
+            
         dt.costs.lower <- copy(dt.costs)
         dt.costs.upper <- cbind(copy(dt.costs[,.(origin.tract=dest.tract, dest.tract=origin.tract)]), dt.costs[, (cols.costs), with=FALSE])
         dt.costs.diag <- rbindlist(lapply(dt.census.tracts, function(x) data.table(origin.tract=x, dest.tract=x)))
@@ -53,8 +62,7 @@ funMeasures.wasserstein <- function(dt.census, dt.costs){
                                                                    cost.name=x))
         names(l.costs.mat) <- cols.costs
         # Calculate wasserstein measure for first pair and first cost
-        
-        
+
         # First cost (driving.meters)
         dt.cost <- l.costs.mat[[1]]
         # Tract matrix create
