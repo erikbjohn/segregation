@@ -34,8 +34,14 @@ suppressMessages(library(bit64))
 
 
 #source('locations.segregation.R')
-load('~/Dropbox/pkg.data/api.keys/raw/l.pkg.rdata')
-api.key <- l.pkg$google
+#load('~/Dropbox/pkg.data/api.keys/raw/l.pkg.rdata')
+#api.key <- l.pkg$google
+
+library(tidycensus)
+library(tidyverse)
+#for Karl
+api_key<-"f4ea45dde45d543afab05aa7ce86b36d5992a42f"
+census_api_key("f4ea45dde45d543afab05aa7ce86b36d5992a42f")
 
 # File Locations
 combs.richmond.centroids.location <- 'CleanData/combs.richmond.centroids.rdata'
@@ -107,6 +113,10 @@ ggsave('Figures/hist_pctChng_transitTimes.pdf')
 ```{r results='asis', echo=FALSE}
 dt_origin_changes <- dt_transit[, .(mean_pct_increase=mean(pct_increase), sd_pct_increase=sd(pct_increase)), by=origin.tract][order(-mean_pct_increase)]
 
+#save for regression before fortifying
+dt_origin_changes_reg<-dt_origin_changes
+setnames(dt_origin_changes_reg, 'origin.tract', 'id')
+
 # Plot these
 shps <- funShapes.richmond.tracts()
 shp_fortify <- fortify(shps, region='GEOID')
@@ -115,9 +125,67 @@ tracts.df <- join(dt_origin_changes, shp_fortify, by='id')
 census <- funCensus()
 setnames(census, 'tract', 'id')
 tracts.df <- join(census, tracts.df, by='id')
-tracts.df$pct_black <- tracts.df$black.n/tracts.df$race.total.n
+tracts.df$pct_black <- tracts.df$race.black.n/tracts.df$race.total.n
 ggplot(tracts.df, aes(long, lat, group=group, fill=mean_pct_increase)) +  geom_polygon() + coord_equal() 
 ggplot(tracts.df, aes(long,lat, group=group, fill=pct_black))+geom_polygon() + coord_equal()
+
+testplot.time<-ggplot(tracts.df, aes(long, lat, group = group, fill = mean_pct_increase)) + scale_fill_gradient2(low ='green', mid = "light gray", high = "red", 
+                       midpoint = 0.0, space = "rgb", na.value = "white", 
+                       guide = ('colourbar'), guide_legend(title = 'Pct Change in Travel Time')) + geom_polygon() + coord_equal()
+testplot.time
+#This works? it doesn't look great, though
+
+#reg stuff
+test.df<-join(dt_origin_changes_reg,census, by ='id')
+test2<-as.data.frame(test.df)
+
+y<-test2[,2]
+y<-y*100
+black<-test2[,11]
+test2$pctblack<-test2$race.black.n/test2$race.total.n
+pctblack<-test2[,29]
+inc<-test2$income.med.hh
+pctwhite<-test2$race.white.n/test2$race.total.n
+pctasian<-test2$race.asian.n/test2$race.total.n
+pcthisp<-test2$race.hispanic.n/test2$race.total.n #this becomes NA in all regressions
+
+meantime<-test2[,9]
+
+pctpub<-test2$industry.public.admin.n/test2$industry.total.industry.n
+pctaffhm<-test2$industry.affhm.n/test2$industry.total.industry.n
+pctcons<-test2$industry.construction.n/test2$industry.total.industry.n
+pctmanu<-test2$industry.manufacturing.n/test2$industry.total.industry.n
+pctwhole<-test2$industry.wholesale.n/test2$industry.total.industry.n
+pctretail<-test2$industry.retail.n/test2$industry.total.industry.n
+pctTAW<-test2$industry.transportation.and.warehouse.n/test2$industry.total.industry.n
+pctinfo<-test2$industry.information.n/test2$industry.total.industry.n
+pctfinance<-test2$industry.finance.n/test2$industry.total.industry.n
+pctSW<-test2$industry.science.waste.n/test2$industry.total.industry.n
+pcteduhealth<-test2$industry.education.healthcare.n/test2$industry.total.industry.n
+pctarts<-test2$industry.arts.n/test2$industry.total.industry.n
+pctother<-test2$industry.other.n/test2$industry.total.industry.n
+
+totwork<-test2$industry.total.industry.n
+
+pct.bus<-test2$bus.n/test2$race.total.n
+pct.walk<-test2$walk.n/test2$race.total.n
+pct.car<-test2$car.n/test2$race.total.n
+pct.carpool<-test2$carpool.n/test2$race.total.n
+
+regind<-lm(y~pctwhole) # reduced model one by one, none of the industries were ever significant (or even close)
+summary(regind)
+
+regcom<-lm(y~pct.bus) # reduced model, none significant
+summary(regcom)
+
+regrace<-lm(y~pctasian) #This makes no sense
+summary(regrace)
+
+
+regall<-lm(y~pct.bus + pctblack + pctasian + pctwhite + totwork + inc + pctwhole + pcteduhealth + pctfinance + pctpub) 
+#When I just throw a bunch of variables in the pctwhite and pctblack are far and away the worst
+summary(regall)
+#If I reduce model it goes down to pctasian and pct.bus, but still makes no sense
 ```
 
 \clearpage
