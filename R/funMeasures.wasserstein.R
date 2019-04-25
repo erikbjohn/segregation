@@ -2,15 +2,8 @@ funMeasures.wasserstein <- function(dt.census, dt.costs){
     if (file.exists(measures.wasserstein.location)){
         load(measures.wasserstein.location)
     } else {
+        dt_commute <- git_commute()
         dt.costs <- dcast(dt.costs, origin.tract + dest.tract ~ mode, value.var='distance_seconds')
-        # Clean and prepare dt.census
-        cols.race <- names(dt.census)[str_detect(names(dt.census),'race.*.n') & names(dt.census)!='race.total.n']
-        ## Subset to only include races with at least 1% of the total population
-        l.race.n.total <- unlist(lapply(cols.race, function(x) sum(dt.census[,(x), with=FALSE])))
-        l.race.share.total <- l.race.n.total/sum(l.race.n.total)
-        cols.race <- cols.race[which(l.race.share.total>0.01)]
-        race.pairs <- combn(cols.race, 2, simplify=FALSE)
-        race.pairs <- rbind(race.pairs, lapply(race.pairs, function(x) c(x[2], x[1])))
         
         # Clean, prepare, and check dt.costs
         ## Subset distance matrix (dt.costs) to only include tracts that were not NA on census dimensions
@@ -25,30 +18,15 @@ funMeasures.wasserstein <- function(dt.census, dt.costs){
         ## Make dt.costs symmetric (for transformation to square matrix)
         dt.costs.diag <- data.table(origin.tract=dt.census.tracts, dest.tract=dt.census.tracts, driving=0, transit=0, walking=0)
         dt.costs <- rbindlist(list(dt.costs, dt.costs.diag), use.names = TRUE, fill=TRUE)  
-        setkey(dt.costs, origin.tract, dest.tract)
+        setkey(dt.costs, origin.tract)
+        setkey(dt_commute, origin.tract)
+        dt.costs <- dt_commute[dt.costs]
+        dt.costs <- dt.costs[, weighted := driving * share.driving + transit * share.transit + walking * share.walking]
+        dt.costs.square <- dt.costs[order(origin.tract, dest.tract)]
         
-        
-        
-        
-        
-        dt.costs.diag <- dt.costs.dage
-            
-        dt.costs.lower <- copy(dt.costs)
-        dt.costs.upper <- cbind(copy(dt.costs[,.(origin.tract=dest.tract, dest.tract=origin.tract)]), dt.costs[, (cols.costs), with=FALSE])
-        dt.costs.diag <- rbindlist(lapply(dt.census.tracts, function(x) data.table(origin.tract=x, dest.tract=x)))
-        dt.costs.diag.cols.costs <- as.data.table(matrix(data=0, nrow = nrow(dt.costs.diag), ncol=length(cols.costs)))
-        setnames(dt.costs.diag.cols.costs, names(dt.costs.diag.cols.costs), cols.costs)
-        dt.costs.diag <- data.table(dt.costs.diag, dt.costs.diag.cols.costs)
-        dt.costs.square <- rbindlist(list(dt.costs.lower, dt.costs.upper, dt.costs.diag), use.names = TRUE)
-        dt.costs.square <- dt.costs.square[order(origin.tract, dest.tract)]
-        # Check again (mat.costs and square)
-        if (length(dt.census.tracts) != sqrt(nrow(mat.costs))){
-            stop(paste0('mat.costs not square. See funMeasures.wasserstein() to debug'))
-        }
         # Create list of different costs (walking, bus, etc) to calculate over
         funCosts.mat <- function(dt.cost, cost.name){
             # Do a quick order to ensure nothing weird happened
-            dt.cost <- dt.cost[order(origin.tract, dest.tract)]
             tracts.unique <- unique(dt.cost$origin.tract)
             mat.cost <- reshape(dt.cost, v.names=cost.name, idvar='origin.tract', timevar='dest.tract', direction='wide')
             mat.cost.row.names<- mat.cost$origin.tract
@@ -58,20 +36,56 @@ funMeasures.wasserstein <- function(dt.census, dt.costs){
             row.names(mat.cost) <- mat.cost.row.names
             return(mat.cost)
         }
+        
+        cols.costs <- c('driving', 'transit', 'walking', 'weighted')
+        
         l.costs.mat <- lapply(cols.costs, function(x) funCosts.mat(dt.cost=dt.costs.square[, c('origin.tract', 'dest.tract', x), with=FALSE],
                                                                    cost.name=x))
         names(l.costs.mat) <- cols.costs
-        # Calculate wasserstein measure for first pair and first cost
-
-        # First cost (driving.meters)
-        dt.cost <- l.costs.mat[[1]]
-        # Tract matrix create
-        dt.census <- dt.census[order(tract)]
-        dt.cost <- dt.cost[order(origin.tract, dest.tract)]
-        # Check that each tract is in origin and destination equal amounts
+        
+        # Calculate race pairs
+        # Clean and prepare dt.census
+        white_tot <- sum(dt_census$race.white.n)
+        black_tot <- sum(dt_census$race.black.n)
+        asian_tot <- sum(dt_census$race.asian.n)
+        hispanic_tot <- sum(dt_census$race.hispanic.n)
+        total_tot <- sum(dt_census$race.total.n)
+        dt_race <- dt_census[, .(tract,
+                                 race_white_share=race.white.n/white_tot,
+                                 race_black_share=race.black.n/black_tot,
+                                 race_asian_share=race.asian.n/asian_tot,
+                                 race_hispanic_share=race.hispanic.n/hispanic_tot,
+                                 race_total_share=race.total.n/total_tot)]
+        dt_race <- dt_race[order(tract)]
+        
+        cols.race <- names(dt_race)[str_detect(names(dt_race),'race.*.share') & names(dt_race)!='race_total_share']
+        ## Subset to only include races with at least 1% of the total population
+        dt_race_grid <- as.data.table(expand.grid(cols.race, cols.race, stringsAsFactors = FALSE))
+        setnames(dt_race_grid, c('raceA', 'raceB'))
+        dt_race_grid <- dt_race_grid[raceA != raceB]
+        dt_race_grid <- dt_race_grid[, race_names:=paste0(stringr::str_extract(raceA))]
+        l_race_grid <- split(dt_race_grid, as.numeric(row.names(dt_race_grid)))
+        l_races <- lapply(l_race_grid, function(x) dt_race[, c('tract', x$raceA, x$raceB), with=FALSE])
+        
+        funWasserstein <- function(a, b, costs){
+            wass_cost <- transport::wasserstein(a, b, p=1, tplan=NULL,costm=costs, prob=TRUE)
+            return(wass_cost)
+        }
+        ind <- 0
+        l_wass_modes <- list()
+        for(mat_costs in l.costs.mat){
+            ind <- ind + 1
+            wass_scores <-= <- sapply(l_races, function(x) funWasserstein(unlist(x[,2]), unlist(x[,3]), mat_costs)
+            l_wass_modes[[ind]] 
+            # Calculate wasserstein
+        }
+        names(l_wass_modes)
+        
+        dt_race_combs <- data.table(raceA = stringr::str_extract(dt_race_grid$raceA, '(?<=race\\_).+(?=\\_share)'),
+                                    raceB = stringr::str_extract(dt_race_grid$raceB, '(?<=race\\_).+(?=\\_share)'),
+                                    wass_score = l_wass_modes)
         
         
-        # Calculate wassersteing
         
         save(measures.wasserstein, file=measures.wasserstein.location)
     }

@@ -8,7 +8,9 @@ git_commute <- function(){
         dt_commute <- dt_commute[, .(origin.tract, share.driving=commute.driving.n/commute.total.n, 
                                      share.transit = commute.transit.n/commute.total.n,
                                      share.walking = commute.walking.n/commute.total.n)]
+        saveRDS(dt_commute, file=git_commute_location)
     } else {
-        
+        dt_commute <- readRDS(git_commute_location)
     }
+    return(dt_commute)
 }
