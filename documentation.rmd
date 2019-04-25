@@ -52,7 +52,7 @@ census.location <- 'CleanData/census.rdata'
 census.commute.location<- 'CleanData/census.commute.rdata'
 census.income.location <- 'CleanData/census.income.rdata'
 census.race.location <- 'CleanData/census.race.rdata'
-measures.wasserstein.location <- 'CleanData/measures.wassersteing.rdata'
+measures.wasserstein.location <- 'CleanData/measures.wassersteing.rds'
 shapes.richmond.tracts.location <- 'CleanData/shapes.richmond.tracts.rdata'
 shapes.richmond.centroids.location <- 'CleanData/shapes.richmond.centroids.rdata'
 shapes.proj.env.location <- 'CleanData/shapes.proj.env.rds'
@@ -242,14 +242,9 @@ cat(x.out,sep = '\n')
 
 ## Wasserstein Measure
 ```{r, eval=FALSE}
-
-# Obviously do this
-
-l.wasserstein <- list()
-for(dists.richmond in l_dists_richmond){
-    l.wasserstein <- funMeasures.wasserstein(census, dists.richmond)
-}
+wasserstein <- funMeasures.wasserstein(census, l_dists_richmond)
 ```
+
 The two main drawbacks of the $D$ measure are the lack of spatial information (distance) between populations and the fact that there is no direction implied in the relationship. Next, we measure dissimilarity through a Wasserstein measure, which will include both the spatial information and has the ability to infer directional relationships in the form of an asymmetric graph. This is a two stage process and requires careful selection of counterfactuals.  We begin with the most simple formulation\footnote{The Wasserstein measure is found in the R  \texttt{transport} package.}.
 
 
