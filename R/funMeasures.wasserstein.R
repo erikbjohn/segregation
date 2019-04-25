@@ -75,7 +75,7 @@ funMeasures.wasserstein <- function(dt.census, dt.costs){
         l_wass_modes <- list()
         for(mat_costs in l.costs.mat){
             ind <- ind + 1
-            wass_scores <-= <- sapply(l_races, function(x) funWasserstein(unlist(x[,2]), unlist(x[,3]), mat_costs)
+            wass_scores <- sapply(l_races, function(x) funWasserstein(unlist(x[,2]), unlist(x[,3]), mat_costs))
             l_wass_modes[[ind]] 
             # Calculate wasserstein
         }
@@ -83,7 +83,7 @@ funMeasures.wasserstein <- function(dt.census, dt.costs){
         
         dt_race_combs <- data.table(raceA = stringr::str_extract(dt_race_grid$raceA, '(?<=race\\_).+(?=\\_share)'),
                                     raceB = stringr::str_extract(dt_race_grid$raceB, '(?<=race\\_).+(?=\\_share)'),
-                                    wass_score = l_wass_modes)
+                                    wass_score = wass_scores)
         
         
         

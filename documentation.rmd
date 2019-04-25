@@ -101,6 +101,10 @@ stargazer(dt_cast, summary=TRUE, header=FALSE, nobs=FALSE, digits=0, align=T, st
 Change in Travel times
 
 ```{r results='asis', echo=FALSE}
+
+# Fix dt_transit for Karl (regression)
+# Create dt_transit from karl2017 and karl2019 but first create mean travel time for each origin tract
+
 dt_transit <- dt_cast[, .(origin.tract, dest.tract, seconds2017 = `transit_03-2017`, seconds2018 = `transit_03-2018`)]
 dt_transit <- dt_transit[, pct_increase:=(seconds2018-seconds2017)/seconds2017]
 dt_transit <- dt_transit[pct_increase != 0]
@@ -110,6 +114,9 @@ ggsave('Figures/hist_pctChng_transitTimes.pdf')
 
 
 # Which tracts have the largest changes in travel times?
+
+Nobody cares about public transportation because $u(x_1,x_2)$
+
 ```{r results='asis', echo=FALSE}
 dt_origin_changes <- dt_transit[, .(mean_pct_increase=mean(pct_increase), sd_pct_increase=sd(pct_increase)), by=origin.tract][order(-mean_pct_increase)]
 
@@ -121,6 +128,8 @@ setnames(dt_origin_changes_reg, 'origin.tract', 'id')
 shps <- funShapes.richmond.tracts()
 shp_fortify <- fortify(shps, region='GEOID')
 setnames(dt_origin_changes, 'origin.tract', 'id')
+dt_origin_changes <- dt_origin_changes[, cut_pct_increase:=pmin(mean_pct_increase,0.20)]
+dt_origin_changes <- dt_origin_changes[, cut_pct_increase:=pmax(cut_pct_increase,-0.20)]
 tracts.df <- join(dt_origin_changes, shp_fortify, by='id')
 census <- funCensus()
 setnames(census, 'tract', 'id')
@@ -129,7 +138,7 @@ tracts.df$pct_black <- tracts.df$race.black.n/tracts.df$race.total.n
 ggplot(tracts.df, aes(long, lat, group=group, fill=mean_pct_increase)) +  geom_polygon() + coord_equal() 
 ggplot(tracts.df, aes(long,lat, group=group, fill=pct_black))+geom_polygon() + coord_equal()
 
-testplot.time<-ggplot(tracts.df, aes(long, lat, group = group, fill = mean_pct_increase)) + scale_fill_gradient2(low ='green', mid = "light gray", high = "red", 
+testplot.time<-ggplot(tracts.df, aes(long, lat, group = group, fill = cut_pct_increase)) + scale_fill_gradient2(low ='green', mid = "white", high = "red", 
                        midpoint = 0.0, space = "rgb", na.value = "white", 
                        guide = ('colourbar'), guide_legend(title = 'Pct Change in Travel Time')) + geom_polygon() + coord_equal()
 testplot.time
@@ -233,6 +242,9 @@ cat(x.out,sep = '\n')
 
 ## Wasserstein Measure
 ```{r, eval=FALSE}
+
+# Obviously do this
+
 l.wasserstein <- list()
 for(dists.richmond in l_dists_richmond){
     l.wasserstein <- funMeasures.wasserstein(census, dists.richmond)
