@@ -248,6 +248,14 @@ wasserstein <- funMeasures.wasserstein(census, l_dists_richmond)
 The two main drawbacks of the $D$ measure are the lack of spatial information (distance) between populations and the fact that there is no direction implied in the relationship. Next, we measure dissimilarity through a Wasserstein measure, which will include both the spatial information and has the ability to infer directional relationships in the form of an asymmetric graph. This is a two stage process and requires careful selection of counterfactuals.  We begin with the most simple formulation\footnote{The Wasserstein measure is found in the R  \texttt{transport} package.}.
 
 
+```{r merge_files}
+f_1 <- readRDS('CleanData/karl2017.rds')
+f_2 <- readRDS('CleanData/karl2019.rds')
+dt <- rbindlist(list(f_1, f_2), use.names=TRUE)
 
+dt_agg <- dt[, lapply(.SD, mean), by=.(origin.tract, year), .SDcols = c('driving', 'transit', 'walking', 'weighted')]
 
+dt_cast <- dcast(dt_agg, origin.tract ~ year, value.var=c('driving', 'transit', 'walking', 'weighted'))
+saveRDS(dt_cast, file='CleanData/karlMerge.rds')
 
+```
