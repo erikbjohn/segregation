@@ -109,6 +109,12 @@ dt_transit <- dt_cast[, .(origin.tract, dest.tract, seconds2017 = `transit_03-20
 dt_transit <- dt_transit[, pct_increase:=(seconds2018-seconds2017)/seconds2017]
 dt_transit <- dt_transit[pct_increase != 0]
 ggplot2::ggplot(dt_transit, aes(pct_increase*100)) + geom_histogram(bins=50) + xlab('Percent change tract to tract Public Transit Times 2017 to 2019') + geom_vline(xintercept=0, color='white')
+
+#y<-dt_transit[,"pct_increase"]
+#y<-y$pct_increase
+#x<-1:length(y)
+#plot(y~x)
+
 ggsave('Figures/hist_pctChng_transitTimes.pdf')
 ```
 
@@ -117,8 +123,15 @@ ggsave('Figures/hist_pctChng_transitTimes.pdf')
 
 Nobody cares about public transportation because $u(x_1,x_2)$
 
+
 ```{r results='asis', echo=FALSE}
 dt_origin_changes <- dt_transit[, .(mean_pct_increase=mean(pct_increase), sd_pct_increase=sd(pct_increase)), by=origin.tract][order(-mean_pct_increase)]
+
+#dt_origin_changes2 <- dt_transit[, .(mean_pct_increase=mean(pct_increase), sd_pct_increase=sd(pct_increase)), by=origin.tract]
+
+y<-dt_origin_changes$mean_pct_increase
+x<-1:length(y)
+plot(y~x) #Why is this in order largest to smallest?
 
 #save for regression before fortifying
 dt_origin_changes_reg<-dt_origin_changes
@@ -135,28 +148,51 @@ census <- funCensus()
 setnames(census, 'tract', 'id')
 tracts.df <- join(census, tracts.df, by='id')
 tracts.df$pct_black <- tracts.df$race.black.n/tracts.df$race.total.n
+
+tracts.df$totnohisp<-tracts.df$race.total.n-tracts.df$race.hispanic.n
+tracts.df$pct_black_no_hisp<-tracts.df$race.black.n/tracts.df$totnohisp
+
+
+
+tracts.df<-tracts.df[,cut_pct_black:=pmin(pct_black, 0.6)]
+tracts.df<-tracts.df[,cut_pct_black:=pmax(pct_black,0.0)]
 ggplot(tracts.df, aes(long, lat, group=group, fill=mean_pct_increase)) +  geom_polygon() + coord_equal() 
 ggplot(tracts.df, aes(long,lat, group=group, fill=pct_black))+geom_polygon() + coord_equal()
 
-testplot.time<-ggplot(tracts.df, aes(long, lat, group = group, fill = cut_pct_increase)) + scale_fill_gradient2(low ='green', mid = "white", high = "red", 
+testplot.time<-ggplot(tracts.df, aes(long, lat, group = group, fill = cut_pct_increase)) + scale_fill_gradient2(low ='dark green', mid = "white", high = "red", 
                        midpoint = 0.0, space = "rgb", na.value = "white", 
                        guide = ('colourbar'), guide_legend(title = 'Pct Change in Travel Time')) + geom_polygon() + coord_equal()
 testplot.time
-#This works? it doesn't look great, though
 
-#reg stuff
+testplot.race<-ggplot(tracts.df, aes(long, lat, group = group, fill = pct_black_no_hisp)) + scale_fill_gradient2(low ='light yellow', mid = "gray", high = "black", 
+                       midpoint = 0.4, space = "rgb", na.value = "white", 
+                       guide = ('colourbar'), guide_legend(title = 'Pct of Population is Black')) + geom_polygon() + coord_equal()
+testplot.race #Race is screwed up, with a very low max for pct_black, need to use no_hisp
+
+par(mfrow=c(1,2))
+testplot.time
+testplot.race
+par(mfrow = c(1,1))
+
+t#reg stuff
 test.df<-join(dt_origin_changes_reg,census, by ='id')
-test2<-as.data.frame(test.df)
 
 y<-test2[,2]
 y<-y*100
 black<-test2[,11]
 test2$pctblack<-test2$race.black.n/test2$race.total.n
-pctblack<-test2[,29]
+test2$nohisp<-test2$race.total.n - test2$race.hispanic.n
+
+
+#pctblack<-test2[,29]
 inc<-test2$income.med.hh
-pctwhite<-test2$race.white.n/test2$race.total.n
-pctasian<-test2$race.asian.n/test2$race.total.n
-pcthisp<-test2$race.hispanic.n/test2$race.total.n #this becomes NA in all regressions
+pctwhite<-test2$race.white.n/test2$nohisp
+pctasian<-test2$race.asian.n/test2$nohisp
+pcthisp<-test2$race.hispanic.n/test2$nohisp #this becomes NA in all regressions
+pctblack2<-test2$race.black.n/test2$nohisp
+
+reg.hope<-lm(y~pctblack2 + pctwhite)
+summary(reg.hope) # VERY LOW r^2
 
 meantime<-test2[,9]
 
