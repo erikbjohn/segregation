@@ -98,6 +98,102 @@ dt_cast <- dcast(dt_dists, origin.tract + dest.tract ~ mode + scrapeDate, value.
 stargazer(dt_cast, summary=TRUE, header=FALSE, nobs=FALSE, digits=0, align=T, style='qje', title=paste0('Pairwise Distance Summary'))
 ```
 
+```{r merge_files}
+f_1 <- readRDS('CleanData/karl2017.rds')
+f_2 <- readRDS('CleanData/karl2019.rds')
+dt <- rbindlist(list(f_1, f_2), use.names=TRUE)
+
+dt_agg <- dt[, lapply(.SD, mean), by=.(origin.tract, year), .SDcols = c('driving', 'transit', 'walking', 'weighted')]
+
+dt_cast <- dcast(dt_agg, origin.tract ~ year, value.var=c('driving', 'transit', 'walking', 'weighted'))
+#saveRDS(dt_cast, file='CleanData/karlMerge.rds')
+dt_test<-dt_cast[, .(origin.tract, seconds2017 = dt_cast$weighted_2017, seconds2019 = dt_cast$weighted_2019)]
+dt_test<-dt_test[,pct_increase:=(seconds2019-seconds2017)/seconds2017]
+dt_test<-dt_test[pct_increase != 0]
+head(dt_test)
+
+ggplot2::ggplot(dt_test, aes(pct_increase*100)) + geom_histogram(bins=50) + xlab('Percent change tract to weighted tract Transit Times 2017 to 2019') + geom_vline(xintercept=0, color='white')
+```
+
+
+``` {r results = 'asis', echo = FALSE}
+
+y<-dt_test$pct_increase
+x<-1:length(y)
+plot(y~x) #Almost no change for vast majority of tracts, largest change is only -0.07 pct
+
+test_reg<-dt_test
+setnames(test_reg, 'origin.tract', 'id')
+census<-funCensus()
+setnames(census, 'tract', 'id')
+test.df<-join(test_reg,census, by = 'id')
+test.df$race.nohisp<-test.df$race.total.n-test.df$race.hispanic.n
+test.df$race.hisp.new<-test.df$race.hispanic.n-test.df$race.nohisp
+test.df$pct.black<-test.df$race.black.n/test.df$race.nohisp
+test.df$pct.white<-test.df$race.white.n/test.df$race.nohisp
+test.df$pct.asian<-test.df$race.asian.n/test.df$race.nohisp
+
+target<-test.df$pct_increase
+pblack<-test.df$pct.black
+pwhite<-test.df$pct.white
+pasian<-test.df$pct.asian
+pBus<-test.df$bus.n/test.df$race.nohisp
+pAdmin<-test.df$industry.public.admin.n/test.df$industry.total.industry.n
+pCar<-test.df$car.n/test.df$race.nohisp
+black<-test.df$race.black.n
+
+
+reg.test<-lm(target ~ pblack + pwhite + pBus) #pblack is significant at 0.1, other two are barely not. what do do?
+summary(reg.test)
+```
+
+``` {r results = 'asis', echo = FALSE}
+#Are destinations different than origins?
+
+dt2 <- rbindlist(list(f_1, f_2), use.names=TRUE)
+
+dt_agg2 <- dt2[, lapply(.SD, mean), by=.(dest.tract, year), .SDcols = c('driving', 'transit', 'walking', 'weighted')]
+
+dt_cast2 <- dcast(dt_agg2, dest.tract ~ year, value.var=c('driving', 'transit', 'walking', 'weighted'))
+#saveRDS(dt_cast, file='CleanData/karlMerge.rds')
+dt_test2<-dt_cast2[, .(dest.tract, seconds2017 = dt_cast$weighted_2017, seconds2019 = dt_cast$weighted_2019)]
+dt_test2<-dt_test2[,pct_increase:=(seconds2019-seconds2017)/seconds2017]
+dt_test2<-dt_test2[pct_increase != 0]
+head(dt_test2)
+
+ggplot2::ggplot(dt_test2, aes(pct_increase*100)) + geom_histogram(bins=50) + xlab('Percent change to weighted tract arrival Transit Times 2017 to 2019') + geom_vline(xintercept=0, color='white')
+
+y<-dt_test2$pct_increase
+x<-1:length(y)
+plot(y~x)
+
+test_reg2<-dt_test2
+setnames(test_reg2, 'dest.tract', 'id')
+census<-funCensus()
+setnames(census, 'tract', 'id')
+test.df2<-join(test_reg2,census, by = 'id')
+test.df2$race.nohisp<-test.df2$race.total.n-test.df2$race.hispanic.n
+test.df2$race.hisp.new<-test.df2$race.hispanic.n-test.df2$race.nohisp
+test.df2$pct.black<-test.df2$race.black.n/test.df2$race.nohisp
+test.df2$pct.white<-test.df2$race.white.n/test.df2$race.nohisp
+test.df2$pct.asian<-test.df2$race.asian.n/test.df2$race.nohisp
+
+target2<-test.df2$pct_increase
+pblack2<-test.df2$pct.black
+pwhite2<-test.df2$pct.white
+pasian2<-test.df2$pct.asian
+pBus2<-test.df2$bus.n/test.df2$race.nohisp
+pAdmin2<-test.df2$industry.public.admin.n/test.df2$industry.total.industry.n
+pCar2<-test.df2$car.n/test.df2$race.nohisp
+black2<-test.df2$race.black.n
+
+
+reg.test2<-lm(target2 ~ pblack2 + pwhite2 + pBus2)
+summary(reg.test2)
+#Identical to origin tract, so NO DIFFERENT
+```
+
+
 Change in Travel times
 
 ```{r results='asis', echo=FALSE}
@@ -118,7 +214,24 @@ ggplot2::ggplot(dt_transit, aes(pct_increase*100)) + geom_histogram(bins=50) + x
 ggsave('Figures/hist_pctChng_transitTimes.pdf')
 ```
 
+```{r results='asis', echo=FALSE}
 
+
+test_transit<-dt_test
+shps <- funShapes.richmond.tracts()
+shp_fortify <- fortify(shps, region='GEOID')
+test_transit<-join(test_transit,shp_fortify, by= 'id')
+test_transit <- test_transit[, cut_pct_increase:=pmin(pct_increase,0.015)]
+test_transit <- test_transit[, cut_pct_increase:=pmax(pct_increase,-0.015)]
+
+testplot.time<-ggplot(test_transit, aes(long, lat, group = group, fill = cut_pct_increase)) + scale_fill_gradient2(low ='dark green', mid = "white", high = "red", 
+                       midpoint = 0.0, space = "rgb", na.value = "white", 
+                       guide = ('colourbar'), guide_legend(title = 'Pct Change in Travel Time')) + geom_polygon() + coord_equal()
+testplot.time
+
+
+
+```
 # Which tracts have the largest changes in travel times?
 
 Nobody cares about public transportation because $u(x_1,x_2)$
