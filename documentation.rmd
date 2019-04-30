@@ -30,6 +30,7 @@ library(stats) # For reshape
 library(rgdal)
 library(maptools)
 library(plyr)
+library(lubridate)
 suppressMessages(library(bit64))
 
 
@@ -57,11 +58,11 @@ shapes.richmond.tracts.location <- 'CleanData/shapes.richmond.tracts.rdata'
 shapes.richmond.centroids.location <- 'CleanData/shapes.richmond.centroids.rdata'
 shapes.proj.env.location <- 'CleanData/shapes.proj.env.rds'
 
-#f_list <- paste0('R/', list.files('R'))
-#for(file in f_list){
-#    cat(file, '\n')
-#    source(file)
-#}
+f_list <- paste0('R/', list.files('R'))
+for(file in f_list){
+    cat(file, '\n')
+    source(file)
+}
 ```
 
 # Description
@@ -98,7 +99,7 @@ dt_cast <- dcast(dt_dists, origin.tract + dest.tract ~ mode + scrapeDate, value.
 stargazer(dt_cast, summary=TRUE, header=FALSE, nobs=FALSE, digits=0, align=T, style='qje', title=paste0('Pairwise Distance Summary'))
 ```
 
-```{r merge_files}
+```{r merge_files_2}
 f_1 <- readRDS('CleanData/karl2017.rds')
 f_2 <- readRDS('CleanData/karl2019.rds')
 dt <- rbindlist(list(f_1, f_2), use.names=TRUE)
@@ -151,15 +152,18 @@ int.pbl.inc<-pblack*medInc
 int.pwh.inc<-pwhite*medInc
 int.pas.inc<-pasian*medInc
 target100<-target*100
+county <- as.factor(stringr::str_sub(test.df$id, 3, 5))
 
-reg.test<-lm(target ~ pblack + pwhite + medInc + int.pbl.inc + int.pwh.inc) 
 
-summary(reg.test)
+reg.test_1<-lm(target ~ pblack + pwhite + medInc) 
+reg.test_2<-lm(target ~ pblack + pwhite + medInc + int.pbl.inc + int.pwh.inc) 
+
+#summary(reg.test)
 #Looks good with interraction
 
 
 
-stargazer(reg.test, summary=TRUE, header=FALSE, nobs=FALSE, digits=0, align=T, style='qje', title=paste0('Percent Change in Regression Summary'))
+stargazer(reg.test_1, reg.test_2, summary=TRUE, header=FALSE, nobs=FALSE, align=T, style='qje', title=paste0('Percent Change in Regression Summary'))
 
 reg.income<-lm(medInc ~ pblack100)
 summary(reg.income)
@@ -250,13 +254,10 @@ test_transit<-join(test_transit,shp_fortify, by= 'id')
 test_transit <- test_transit[, cut_pct_increase:=pmin(pct_increase,0.02)]
 test_transit <- test_transit[, cut_pct_increase:=pmax(pct_increase,-0.02)]
 test_transit$cut_pct_increase<-test_transit$cut_pct_increase * 100
-testplot.time2<-ggplot(test_transit, aes(long, lat, group = group, fill = cut_pct_increase)) + scale_fill_gradient2(low ='dark green', mid = "white", high = "red", 
+testplot.time2<-ggplot(test_transit, aes(long, lat, group = group, fill = cut_pct_increase)) + scale_fill_gradient2(low ='dark green', mid = "white", high = "red",
                        midpoint = 0.0, space = "rgb", na.value = "white", 
                        guide = ('colourbar'), guide_legend(title = 'Weighted Percent Change in Travel Time')) + geom_polygon() + coord_equal()
 testplot.time2
-
-
-
 ```
 # Which tracts have the largest changes in travel times?
 
@@ -368,7 +369,10 @@ cat(x.out,sep = '\n')
 ```
 
 ## Wasserstein Measure
-```{r, eval=FALSE}
+
+Earth mover distance
+
+```{r, eval=TRUE, results='asis'}
 #wasserstein <- funMeasures.wasserstein(census, l_dists_richmond)
 
 f_1 <- readRDS('CleanData/karl2017.rds')
@@ -385,13 +389,16 @@ wasserstein.karl
 wasserstein.final<-wasserstein.karl[mode == "weighted"]
 wasserstein.final
 wasserstein.final<-wasserstein.final[,-3]
-wasserstein.final
+wasserstein.final <- wasserstein.final[, pct_change:=(`2019`-`2017`)/`2017`]
+wasserstein.final <- wasserstein.final[order(pct_change)]
+stargazer(wasserstein.final)
+
 ```
 
 The two main drawbacks of the $D$ measure are the lack of spatial information (distance) between populations and the fact that there is no direction implied in the relationship. Next, we measure dissimilarity through a Wasserstein measure, which will include both the spatial information and has the ability to infer directional relationships in the form of an asymmetric graph. This is a two stage process and requires careful selection of counterfactuals.  We begin with the most simple formulation\footnote{The Wasserstein measure is found in the R  \texttt{transport} package.}.
 
 
-```{r merge_files}
+```{r merge_files_1}
 #f_1 <- readRDS('CleanData/karl2017.rds')
 #f_2 <- readRDS('CleanData/karl2019.rds')
 #dt <- rbindlist(list(f_1, f_2), use.names=TRUE)
