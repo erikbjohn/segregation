@@ -2,13 +2,13 @@
 title: "Segregation Empirical Work"
 author: "Erik B. Johnson, Karl Stahlfeld"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
-header-includes: 
-  - \usepackage{dcolumn}
-urlcolor: "blue"
-output: 
-    pdf_document:
-    toc: true
-    number_sections: true
+output:
+  word_document: default
+  pdf_document: null
+  toc: yes
+  number_sections: yes
+header-includes: \usepackage{dcolumn}
+urlcolor: blue
 ---
 
 ```{r setup, include=FALSE}
@@ -65,31 +65,116 @@ for(file in f_list){
 }
 ```
 
-# Description
+# Synopsis
 
-Data work and documentation for the Richmond transportation/segregation paper.
+Richmond, Virginia has had a civil rights lawsuit filed against it after it updated its bus routes in the summer of 2018. Studies have been done looking at the potentially disparate effects on the city's poorer and mostly minority, neighborhoods. While those studies have mostly been focused on changes in distances from old to new bus stations, we seek to analyze how the transit changes have impacted travel times and segregation levels around the city. To measure segregation, we have used a Wasserstein measurement, which allows us to look not only at the racial information of each community but also the asymmetrical ease of travel to other racial communities. Using this new measurement, we have found that the transit route changes have reduced segregation levels in Richmond by making it easier and faster for the minority communities to travel to the city's richer, primarily white, neighborhoods.
 
 # Background
 
-Really seems that we should focus on the commuting component of transportation (empirical and theoretical reasons.)
+In 2018, Richmond, Virginia enacted The Great Richmond Reroute, which was the first major update to the city's mass transit lines in decades. Its goal was to increase route efficiency and speed up travel throughout the entire city. However, many Richmond citizens feel that the rerouting of the bus lines was done unfairly and benefited the rich, primarily white, suburbs to the detriment of the poor, mostly minority, neighborhoods. In early 2019, less than a year after the changes were implemented, a civil rights complaint was filed against the Greater Richmond Transit Company, or GRTC, which was the company behind the Great Richmond Reroute, alleging that that changes are disproportionately harming the primarily minority communities in Richmond. In this paper, we will be exploring how the changes to the transit system have affected the segregation levels in Richmond, not by a spatial measurement but by the time it takes to go from one community to the other communities in the area.
 
-This is a list of possible sources to help motivate our paper.
+#Civil Rights Lawsuit
 
-*   [Commuting to Opportunity](`r URLencode('https://web.stanford.edu/group/scspi/_media/pdf/key_issues/transportation_policy.pdf')`)
-*   [Commuting in America](`r URLencode('http://traveltrends.transportation.org/Documents/CA10-4.pdf')`)
-*   [Low income commuters and Cycling](`r URLencode('https://www.citylab.com/transportation/2014/07/how-low-income-commuters-view-cycling/374390/')`)
+Richmond is a starkly divided city, both in terms of income and race. The primarily upper class whites live in the west and north west parts of the city, while the east and southern parts are primarily low income minorities. According to the United States Census Bureau, just under 45% of the city's approximately two hundred thousand citizens are white, while just over 48% are black.
+
+Since the city is so divided, any major overhaul to the city's transit system was going to come under scrutiny, as it would be relatively easy to shift resources away from the eastern half of the transit system over towards the more prosperous western parts of Richmond. In February, public activist Omari Al-Qadaffi filed a civil rights complaint against the GRTC. He stated that "'public resources are being disinvested from a black neighborhood and being reappropriated to a whiter neighborhood'" (Noe-Payne). Racial tensions recently have been heightened in Richmond, and the fact that this civil rights complaint was filed only a month after the Democrat Governor Ralph Northam black face scandal serves to further illustrate the problems facing Richmond. While Al-Qadaffi officially filed the civil rights complaint after the GRTC cut service from a primarily black neighborhood and are redirecting that funds to the predominately white western end of Richmond (Noe-Payne), he is not the first to notice the problem. Sarin Adhikari of Virginia Commonwealth's Center for Urban and Regional Analysis (CURA) also noticed the potential problems and published a report back in December 2018. CURA's study wanted to look at how the change in bus routes affected lower income communities in two ways: how accessible the new bus stations were compared to the previous lines and how they affected the ease of commuting to work using mass transit (Adhikari 1).  The study found that "jobs accessibility across the region improved, but transit accessibility for low-income households remained the same or decreased" (Adhikari 7). Al-Qadaffi cited this study as proof that his concerns regarding the unequal outcomes of the Great Richmond Reroute. On the other hand, the GRTC had conducted their own study before the changes took place that found that there was no disparate outcomes to minorities from the changes. Their study focused on whether or not the change in routes disproportionately hurt minorities more than it hurt whites and whether or not in benefited whites disproportionately more than it benefited minorities. In both cases the GRTC found that the routes did not cause unequal burdens, though Al-Qadaffi and others have disputed those claims. 
+
+#Differences Between the Two Studies
+
+One of the potential reasons that the GRTC's study and CURA's study seem to conflict is that they are studying different potential problems with the change. The GRTC focused on the number and regularity of bus lines, while CURA focused on the physical distance from local communities to the nearest bus station and how well that bus station is connected to the other stations.
+
+In the GRTC's study, they looked at how the potential changes to the bus system (the study was done before the Great Reroute took place) would increase ridership of the overall system as well as breaking it down, once by minorities and whites and the other broken down based on low income and non-low income riders. In both cases, the GRTC found that the changes would benefit minorities and lower income individuals more as the percentage of new riders would be disproportionately higher for minorities and low income riders. However, this has come under scrutiny, as there are concerns that the GRTC is taking the low income riders, who depend upon the system to travel around Richmond, for granted, as they may be forced to continue riding buses even if the system is worse for them overall than before. Thus, some advocates are concerned that "the changes have catered to what are called "choice riders," transit parlance for people who own a car but elect to take public transportation" (Robinson). Even if overall numbers go up, the service changes may still be harmful to minority communities who rely on mass transit.
+
+Adhikari and the CURA took a different approach. They focused on how far it is to walk to the nearest bus stop for each community and how the reroute changed the distances. They found that, while the amount of houses within a quarter mile of a bus stop had gone down by five percent, the number of households within a half mile of the nearest bus stop had gone up by two percent. Overall, though, the Great Richmond Reroute has lengthened the average distance to the nearest bus stop for most houses. The increase in walking distance to the nearest bus stop, however, is not evenly spread throughout the city. The study found that, instead of a five percent increase in number of households within a half mile to the nearest bus stop, it actually decreased in low income neighborhoods by three percent. Additionally, the number of households in low income communities within a quarter mile of the nearest bus stop dropped by a whopping twenty two percent. This is compounded by the relatively low rate of the bus stops in low income communities to be connected to many different routes, which can increase travel times even further as riders have to switch lines repeatedly to get to their destination. However, the reroute has streamlined the bus routes, so even with the additional walking distance and potential for extra changes, overall travel times may still have gone down for many communities. For example, the CURA study found that access to job centers has gone up noticeably as a result of the transit route changes.
 
 \clearpage
 
-# Data
+#Role of Segregation
+
+At the heart of the problem is the segregation of the city. Maps of Richmond comparing the different levels of income and race across the city for each census tract were obtained using ACS 5 year estimates. Comparing the two, the relationship between income and the percentage of blacks (the most populous minority in Richmond) in each tract is quite clear. Running a simple regression on the median household income for each tract based on the percent of blacks living in that tract found a strong negative correlation, which follows from looking at the two maps. Additional regressions confirmed the expected results that the percent of people that use the bus system to ride to work each day is strongly correlated with both the percent of blacks living in that census tract and the median household income in that tract as well. Thus, any increase in the travel time for mass transit will have a disproportionate effect on the poor minority neighborhoods compared to their wealthier counterparts due to their higher reliance on the transit system as a means of transportation.
+    ```{r results='asis', echo=FALSE}
+f_1 <- readRDS('CleanData/karl2017.rds')
+f_2 <- readRDS('CleanData/karl2019.rds')
+dt <- rbindlist(list(f_1, f_2), use.names=TRUE)
+
+dt_agg2 <- dt[, lapply(.SD, mean), by=.(origin.tract, year), .SDcols = c('driving', 'transit', 'walking', 'weighted')]
+dt_cast2 <- dcast(dt_agg2, origin.tract ~ year, value.var=c('driving', 'transit', 'walking', 'weighted'))
+dt_transit2 <- dt_cast2[, .(origin.tract, seconds2017 = `transit_2017`, seconds2018 = `transit_2019`)]
+dt_transit2 <- dt_transit2[, pct_increase:=(seconds2018-seconds2017)/seconds2017]
+dt_transit2 <- dt_transit2[pct_increase != 0]
+
+dt_origin_changes <- dt_transit2[, .(mean_pct_increase=mean(pct_increase), sd_pct_increase=sd(pct_increase)), by=origin.tract][order(-mean_pct_increase)]
+
+#dt_origin_changes2 <- dt_transit[, .(mean_pct_increase=mean(pct_increase), sd_pct_increase=sd(pct_increase)), by=origin.tract]
+
+#y<-dt_origin_changes$mean_pct_increase
+#x<-1:length(y)
+#plot(y~x) #Why is this in order largest to smallest?
+
+
+# Plot these
+shps <- funShapes.richmond.tracts()
+shp_fortify <- fortify(shps, region='GEOID')
+setnames(dt_origin_changes, 'origin.tract', 'id')
+dt_origin_changes <- dt_origin_changes[, cut_pct_increase:=pmin(mean_pct_increase,0.25)]
+dt_origin_changes <- dt_origin_changes[, cut_pct_increase:=pmax(cut_pct_increase,-0.25)]
+tracts.df <- join(dt_origin_changes, shp_fortify, by='id')
+census <- funCensus()
+setnames(census, 'tract', 'id')
+tracts.df <- join(census, tracts.df, by='id')
+tracts.df$pct_black <- tracts.df$race.black.n/tracts.df$race.total.n
+
+#tracts.df$totnohisp<-tracts.df$race.total.n-tracts.df$race.hispanic.n
+#tracts.df$pct_black_no_hisp<-tracts.df$race.black.n/tracts.df$totnohisp
+
+
+
+#tracts.df<-tracts.df[,cut_pct_black:=pmin(pct_black, 0.6)]
+#tracts.df<-tracts.df[,cut_pct_black:=pmax(pct_black,0.0)]
+#ggplot(tracts.df, aes(long, lat, group=group, fill=mean_pct_increase)) +  geom_polygon() + coord_equal() 
+#ggplot(tracts.df, aes(long,lat, group=group, fill=pct_black))+geom_polygon() + coord_equal()
+
+#testplot.time<-ggplot(tracts.df, aes(long, lat, group = group, fill = cut_pct_increase)) + scale_fill_gradient2(low ='dark green', mid = "white", high = "red", 
+ #                      midpoint = 0.0, space = "rgb", na.value = "white", 
+ #                      guide = ('colourbar'), guide_legend(title = 'Percent Change in Transit Travel Time')) + geom_polygon() + coord_equal()
+#testplot.time #different than before? Not as clear?
+
+testplot.race<-ggplot(tracts.df, aes(long, lat, group = group, fill = pct_black)) + scale_fill_gradient2(low ='dark green', mid = "white", high = "red", 
+                       midpoint = 0.4, space = "rgb", na.value = "white", 
+                       guide = ('colourbar'), guide_legend(title = 'Percent of Population is Black')) + geom_polygon() + coord_equal()
+testplot.race #Race is screwed up, with a very low max for pct_black, need to use no_hisp
+
+testplot.income<-ggplot(tracts.df, aes(long, lat, group = group, fill = income.med.hh)) + scale_fill_gradient2(low ='red', mid = "white", high = "dark green", 
+                       midpoint = 90000, space = "rgb", na.value = "white", 
+                       guide = ('colourbar'), guide_legend(title = 'Median Family Income')) + geom_polygon() + coord_equal()
+testplot.income 
+
+#par(mfrow=c(1,3))
+#testplot.time
+#testplot.race
+#testplot.income
+#par(mfrow = c(1,1))
+
+```
+    
+Since the upper class communities and lower class communities travel about the city in different ways, they can experience the stark segregation of Richmond in very different ways. People in the wealthier neighborhoods, who rely mostly on cars for transportation, may find it easy to get to a poorer neighborhood, whether for work or personal matters, while people from the poorer neighborhood may struggle to be able to reach the richer neighborhoods by relying on mass transit. Traditional measures of segregation, based only on where people live, do not differentiate between their two situations, but this does not accurately reflect the two different experiences on the two different sides of the segregation. Thus, a new measurement for segregation is needed- one that accounts for the special information as well as the different directional travel experiences.
+
+\clearpage
+
+# Gathering Data
+
+   In order to get data from the Richmond transit area, we gathered data from the ACS five year estimates for Richmond City, Henrico County, and Chesterfield County. Looking at the census tract level, we collected information regarding several different factors for each tract. We obtained the different racial makeups of each tract, the median household income, how the local residents commuted to work, and what types of jobs they had. From these factors we created a short profile for each tract including all of the variables for each tract. 
+	Next, we needed to calculate the travel times for the different tracts to other parts of the city. In order to do this we decided to look at how long the commute from the center of each census tract is to the center of each of the other census tracts. In order to calculate this, we used Google travel times and calculated the distance in meters and the time in seconds that it would take to get from each tract to all of the other tracts by three different modes of transportation: car, walking, and mass transit. For the mass transit, we added the walking time to get to and from the bus station as necessary in order to calculate a more accurate time measurement. From these, we calculated the average time it would take to get from each tract to all of the other tracts in the city by driving a car, walking, and riding the bus.
+
 
 ## Change in Travel times
+
 ```{r dists.richmond, echo=FALSE}
 l_dists_richmond <- funDistances_combine()
 ```
 
-First, use google travel times to build \textbf{dists.richmond} for distances (meters) and travel times (seconds) by mode to and from all census tracts.
-Based on tract-centroids to tract-centroids. Distance is non-euclidean. For google distance and time calculation documentation see: 
+First, we used google travel times to build \textbf{dists.richmond} for distances (meters) and travel times (seconds) by mode to and from all census tracts.
+This measurement is based on tract-centroids to tract-centroids, and distance is non-euclidean. For google distance and time calculation documentation see: 
 [Google distance api documentation](`r URLencode('https://developers.google.com/maps/documentation/distance-matrix/intro')`)
 
 Summary statistics for \textbf{dists.richmond} (where NA transit values default to walking values):
@@ -99,7 +184,11 @@ dt_cast <- dcast(dt_dists, origin.tract + dest.tract ~ mode + scrapeDate, value.
 stargazer(dt_cast, summary=TRUE, header=FALSE, nobs=FALSE, digits=0, align=T, style='qje', title=paste0('Pairwise Distance Summary'))
 ```
 
-```{r merge_files_2}
+By combining the average travel times with the rest of the data from the ACS profiles for each tract, we are able to weight what the average travel time for each resident of a tract is based on the travel times for the different modes of transportation and what percentage of residents use that mode as transportation. If more residents in a community use the bus system to travel around Richmond, then any change in the travel time of mass transit will affect them more than a change in transit travel time in a community that barely rides the bus, and weighting the mean travel time allows us to accurately reflect the different impacts in two such communities.
+	After calculating the weighted time travel for each census tract before and after the bus changes, we are able to look at how much the travel times for each census tract were affected and calculate the percent change in weighted travel time for each tract from before the transit reroute to after it had taken place.
+
+
+```{r merge_files_2, echo = FALSE}
 f_1 <- readRDS('CleanData/karl2017.rds')
 f_2 <- readRDS('CleanData/karl2019.rds')
 dt <- rbindlist(list(f_1, f_2), use.names=TRUE)
@@ -111,17 +200,22 @@ dt_cast <- dcast(dt_agg, origin.tract ~ year, value.var=c('driving', 'transit', 
 dt_test<-dt_cast[, .(origin.tract, seconds2017 = dt_cast$weighted_2017, seconds2019 = dt_cast$weighted_2019)]
 dt_test<-dt_test[,pct_increase:=(seconds2019-seconds2017)/seconds2017]
 dt_test<-dt_test[pct_increase != 0]
-head(dt_test)
+#head(dt_test)
 
-ggplot2::ggplot(dt_test, aes(pct_increase*100)) + geom_histogram(bins=50) + xlab('Percent change tract to weighted tract Transit Times 2017 to 2019') + geom_vline(xintercept=0, color='white')
+#ggplot2::ggplot(dt_test, aes(pct_increase*100)) + geom_histogram(bins=50) + xlab('Percent change tract to weighted tract Transit Times 2017 to 2019') + geom_vline(xintercept=0, color='white')
 ```
+
+#Correlation between Race, Income, Transit Use, and Travel Time
+
+A simple regression confirmed the strong correlation between racial makeup of a census tract in Richmond and the median household income, which follows from looking at the respective maps of Richmond. Additional simple regressions confirmed the expected positive correlation between the percentage of blacks in a census tract and the percentage of residents that use the bus to commute to work as well as the negative correlation between the median income of a tract and the percentage of its residents that use the bus to commute to work. While all of these results are expected, they do emphasize the level of dependency that low income communities have on buses and why any changes made to the routes will affect them more.
+Next, we wanted to look at how the bus route changes impacted the weighted time travel for each tract. To do this, we first calculated the percent change from before to after the reroutes. Then, we ran a regression of the percent change based on the median income in tens of thousands of dollars in each tract as well as the percentage of blacks and whites in each tract. None were significant at the .05 level. Then we ran a regression on the percent change in weighted times based on the percent of whites in each tract, percentage of blacks in each tract, the median income in each tract, and the interactions between the two race percentages and the median incomes in that tract. This was much better, as four of the five variables, all except the percentage of whites in a tract, were significant at the five percent confidence level. After this we considered whether or not the three different counties might have been affected differently, so we added a dummy variable for the county that the tracts were in. However, after adding the dummy variable to both of the previous regressions, the dummy was not significant at the .05 level in either of the two regressions.
 
 
 ``` {r results = 'asis', echo = FALSE}
 
-y<-dt_test$pct_increase
-x<-1:length(y)
-plot(y~x) #Almost no change for vast majority of tracts, largest change is only -0.07 pct
+#y<-dt_test$pct_increase
+#x<-1:length(y)
+#plot(y~x) #Almost no change for vast majority of tracts, largest change is only -0.07 pct
 
 test_reg<-dt_test
 setnames(test_reg, 'origin.tract', 'id')
@@ -145,35 +239,58 @@ pAdmin<-test.df$industry.public.admin.n/test.df$industry.total.industry.n
 pCar<-test.df$car.n/test.df$race.total.n
 black<-test.df$race.black.n
 medInc<-test.df$income.med.hh
+medInc10000<-medInc/10000
 lBlack<-log(pblack)
 pblack100<-pblack*100
 pwhite100<-pwhite*100
-int.pbl.inc<-pblack*medInc
-int.pwh.inc<-pwhite*medInc
-int.pas.inc<-pasian*medInc
+int.pbl.inc<-pblack*medInc10000
+int.pwh.inc<-pwhite*medInc10000
+int.pas.inc<-pasian*medInc10000
 target100<-target*100
 county <- as.factor(stringr::str_sub(test.df$id, 3, 5))
 
 
-reg.test_1<-lm(target ~ pblack + pwhite + medInc) 
-reg.test_2<-lm(target ~ pblack + pwhite + medInc + int.pbl.inc + int.pwh.inc) 
+reg.test_1<-lm(target ~ pblack + pwhite + medInc10000) 
+reg.test_2<-lm(target ~ pblack + pwhite + medInc10000 + int.pbl.inc + int.pwh.inc) 
+reg.test_3<-lm(target ~ pblack + pwhite + medInc10000 + county)
+reg.test_4<-lm(target~ pblack + pwhite + medInc10000 + int.pbl.inc + int.pwh.inc + county)
 
 #summary(reg.test)
 #Looks good with interraction
 
 
 
-stargazer(reg.test_1, reg.test_2, summary=TRUE, header=FALSE, nobs=FALSE, align=T, style='qje', title=paste0('Percent Change in Regression Summary'))
+stargazer(reg.test_1, reg.test_2, reg.test_3, reg.test_4, summary=TRUE, header=FALSE, nobs=FALSE, align=T, style='qje', title=paste0('Percent Change in Regression Summaries'))
 
-reg.income<-lm(medInc ~ pblack100)
-summary(reg.income)
+#reg.income<-lm(medInc ~ pblack100)
+#summary(reg.income)
 
 #stargazer(reg.income, summary=TRUE, header=FALSE, nobs=FALSE, digits=0, align=T, style='qje', title=paste0('Income Regression Summary'))
 
-reg.bus<-lm(pBus ~ pblack)
-summary(reg.bus)
+#reg.bus<-lm(pBus ~ pblack)
+#summary(reg.bus)
 
 #stargazer(reg.bus, summary=TRUE, header=FALSE, nobs=FALSE, digits=0, align=T, style='qje', title=paste0('Bus Riders Regression Summary'))
+```
+
+Looking at the results, the coefficient for percentage of blacks is consistently more significant than the coefficient for the percentage of whites in a tract. Since blacks are more likely to use the mass transit system than whites, it makes sense that the change in weighted travel time is more affected by the percentage of blacks in a tract. Additionally, the mean of the target variable, the percent change in weighted travel time, is negative, which suggests that overall the changes have sped up travel slightly around the city. This is mostly true for primarily white neighborhoods as well as for primarily black neighborhoods. While a few tracts that have a higher weighted travel time than before, the majority tend to have quicker access to the rest of the city, including many in the primarily low income and minority tracts.
+
+
+
+```{r results='asis', echo=FALSE}
+
+
+test_transit<-dt_test
+shps <- funShapes.richmond.tracts()
+shp_fortify <- fortify(shps, region='GEOID')
+test_transit<-join(test_transit,shp_fortify, by= 'id')
+test_transit <- test_transit[, cut_pct_increase:=pmin(pct_increase,0.021)]
+test_transit <- test_transit[, cut_pct_increase:=pmax(pct_increase,-0.025)]
+test_transit$cut_pct_increase<-test_transit$cut_pct_increase * 100
+testplot.time2<-ggplot(test_transit, aes(long, lat, group = group, fill = cut_pct_increase)) + scale_fill_gradient2(low ='dark green', mid = "white", high = "red",
+                       midpoint = 0.0, space = "rgb", na.value = "white", 
+                       guide = ('colourbar'), guide_legend(title = 'Weighted Percent Change in Travel Time')) + geom_polygon() + coord_equal()
+testplot.time2
 ```
 
 ``` {r results = 'asis', echo = FALSE}
@@ -224,17 +341,17 @@ summary(reg.bus)
 ```
 
 
-Change in Travel times
+
 
 ```{r results='asis', echo=FALSE}
 
 # Fix dt_transit for Karl (regression)
 # Create dt_transit from karl2017 and karl2019 but first create mean travel time for each origin tract
 
-dt_transit <- dt_cast[, .(origin.tract, seconds2017 = `transit_2017`, seconds2018 = `transit_2019`)]
-dt_transit <- dt_transit[, pct_increase:=(seconds2018-seconds2017)/seconds2017]
-dt_transit <- dt_transit[pct_increase != 0]
-ggplot2::ggplot(dt_transit, aes(pct_increase*100)) + geom_histogram(bins=50) + xlab('Percent change tract to tract Public Transit Times 2017 to 2019') + geom_vline(xintercept=0, color='white')
+#dt_transit <- dt_cast[, .(origin.tract, seconds2017 = `transit_2017`, seconds2018 = `transit_2019`)]
+#dt_transit <- dt_transit[, pct_increase:=(seconds2018-seconds2017)/seconds2017]
+#dt_transit <- dt_transit[pct_increase != 0]
+#ggplot2::ggplot(dt_transit, aes(pct_increase*100)) + geom_histogram(bins=50) + xlab('Percent change tract to tract Public Transit Times 2017 to 2019') + geom_vline(xintercept=0, color='white')
 
 #y<-dt_transit[,"pct_increase"]
 #y<-y$pct_increase
@@ -244,34 +361,17 @@ ggplot2::ggplot(dt_transit, aes(pct_increase*100)) + geom_histogram(bins=50) + x
 #ggsave('Figures/hist_pctChng_transitTimes.pdf')
 ```
 
-```{r results='asis', echo=FALSE}
 
-
-test_transit<-dt_test
-shps <- funShapes.richmond.tracts()
-shp_fortify <- fortify(shps, region='GEOID')
-test_transit<-join(test_transit,shp_fortify, by= 'id')
-test_transit <- test_transit[, cut_pct_increase:=pmin(pct_increase,0.02)]
-test_transit <- test_transit[, cut_pct_increase:=pmax(pct_increase,-0.02)]
-test_transit$cut_pct_increase<-test_transit$cut_pct_increase * 100
-testplot.time2<-ggplot(test_transit, aes(long, lat, group = group, fill = cut_pct_increase)) + scale_fill_gradient2(low ='dark green', mid = "white", high = "red",
-                       midpoint = 0.0, space = "rgb", na.value = "white", 
-                       guide = ('colourbar'), guide_legend(title = 'Weighted Percent Change in Travel Time')) + geom_polygon() + coord_equal()
-testplot.time2
-```
-# Which tracts have the largest changes in travel times?
-
-Nobody cares about public transportation because $u(x_1,x_2)$
 
 
 ```{r results='asis', echo=FALSE}
-dt_agg2 <- dt[, lapply(.SD, mean), by=.(origin.tract, year), .SDcols = c('driving', 'transit', 'walking', 'weighted')]
-dt_cast2 <- dcast(dt_agg2, origin.tract ~ year, value.var=c('driving', 'transit', 'walking', 'weighted'))
-dt_transit2 <- dt_cast2[, .(origin.tract, seconds2017 = `transit_2017`, seconds2018 = `transit_2019`)]
-dt_transit2 <- dt_transit2[, pct_increase:=(seconds2018-seconds2017)/seconds2017]
-dt_transit2 <- dt_transit2[pct_increase != 0]
+#dt_agg2 <- dt[, lapply(.SD, mean), by=.(origin.tract, year), .SDcols = c('driving', 'transit', 'walking', 'weighted')]
+#dt_cast2 <- dcast(dt_agg2, origin.tract ~ year, value.var=c('driving', 'transit', 'walking', 'weighted'))
+#dt_transit2 <- dt_cast2[, .(origin.tract, seconds2017 = `transit_2017`, seconds2018 = `transit_2019`)]
+#dt_transit2 <- dt_transit2[, pct_increase:=(seconds2018-seconds2017)/seconds2017]
+#dt_transit2 <- dt_transit2[pct_increase != 0]
 
-dt_origin_changes <- dt_transit2[, .(mean_pct_increase=mean(pct_increase), sd_pct_increase=sd(pct_increase)), by=origin.tract][order(-mean_pct_increase)]
+#dt_origin_changes <- dt_transit2[, .(mean_pct_increase=mean(pct_increase), sd_pct_increase=sd(pct_increase)), by=origin.tract][order(-mean_pct_increase)]
 
 #dt_origin_changes2 <- dt_transit[, .(mean_pct_increase=mean(pct_increase), sd_pct_increase=sd(pct_increase)), by=origin.tract]
 
@@ -281,16 +381,16 @@ dt_origin_changes <- dt_transit2[, .(mean_pct_increase=mean(pct_increase), sd_pc
 
 
 # Plot these
-shps <- funShapes.richmond.tracts()
-shp_fortify <- fortify(shps, region='GEOID')
-setnames(dt_origin_changes, 'origin.tract', 'id')
-dt_origin_changes <- dt_origin_changes[, cut_pct_increase:=pmin(mean_pct_increase,0.25)]
-dt_origin_changes <- dt_origin_changes[, cut_pct_increase:=pmax(cut_pct_increase,-0.25)]
-tracts.df <- join(dt_origin_changes, shp_fortify, by='id')
-census <- funCensus()
-setnames(census, 'tract', 'id')
-tracts.df <- join(census, tracts.df, by='id')
-tracts.df$pct_black <- tracts.df$race.black.n/tracts.df$race.total.n
+#shps <- funShapes.richmond.tracts()
+#shp_fortify <- fortify(shps, region='GEOID')
+#setnames(dt_origin_changes, 'origin.tract', 'id')
+#dt_origin_changes <- dt_origin_changes[, cut_pct_increase:=pmin(mean_pct_increase,0.25)]
+#dt_origin_changes <- dt_origin_changes[, cut_pct_increase:=pmax(cut_pct_increase,-0.25)]
+#tracts.df <- join(dt_origin_changes, shp_fortify, by='id')
+#census <- funCensus()
+#setnames(census, 'tract', 'id')
+#tracts.df <- join(census, tracts.df, by='id')
+#tracts.df$pct_black <- tracts.df$race.black.n/tracts.df$race.total.n
 
 #tracts.df$totnohisp<-tracts.df$race.total.n-tracts.df$race.hispanic.n
 #tracts.df$pct_black_no_hisp<-tracts.df$race.black.n/tracts.df$totnohisp
@@ -302,53 +402,35 @@ tracts.df$pct_black <- tracts.df$race.black.n/tracts.df$race.total.n
 #ggplot(tracts.df, aes(long, lat, group=group, fill=mean_pct_increase)) +  geom_polygon() + coord_equal() 
 #ggplot(tracts.df, aes(long,lat, group=group, fill=pct_black))+geom_polygon() + coord_equal()
 
-testplot.time<-ggplot(tracts.df, aes(long, lat, group = group, fill = cut_pct_increase)) + scale_fill_gradient2(low ='dark green', mid = "white", high = "red", 
-                       midpoint = 0.0, space = "rgb", na.value = "white", 
-                       guide = ('colourbar'), guide_legend(title = 'Percent Change in Transit Travel Time')) + geom_polygon() + coord_equal()
-testplot.time #different than before? Not as clear?
+#testplot.time<-ggplot(tracts.df, aes(long, lat, group = group, fill = cut_pct_increase)) + scale_fill_gradient2(low ='dark green', mid = "white", high = "red", 
+#                       midpoint = 0.0, space = "rgb", na.value = "white", 
+#                       guide = ('colourbar'), guide_legend(title = 'Percent Change in Transit Travel Time')) + geom_polygon() + coord_equal()
+#testplot.time #different than before? Not as clear?
 
-testplot.race<-ggplot(tracts.df, aes(long, lat, group = group, fill = pct_black)) + scale_fill_gradient2(low ='dark green', mid = "white", high = "red", 
-                       midpoint = 0.4, space = "rgb", na.value = "white", 
-                       guide = ('colourbar'), guide_legend(title = 'Percent of Population is Black')) + geom_polygon() + coord_equal()
-testplot.race #Race is screwed up, with a very low max for pct_black, need to use no_hisp
+#testplot.race<-ggplot(tracts.df, aes(long, lat, group = group, fill = pct_black)) + scale_fill_gradient2(low ='dark #green', mid = "white", high = "red", 
+#                       midpoint = 0.4, space = "rgb", na.value = "white", 
+#                       guide = ('colourbar'), guide_legend(title = 'Percent of Population is Black')) + geom_polygon() + #coord_equal()
+#testplot.race #Race is screwed up, with a very low max for pct_black, need to use no_hisp
 
-testplot.income<-ggplot(tracts.df, aes(long, lat, group = group, fill = income.med.hh)) + scale_fill_gradient2(low ='red', mid = "white", high = "dark green", 
-                       midpoint = 90000, space = "rgb", na.value = "white", 
-                       guide = ('colourbar'), guide_legend(title = 'Median Family Income')) + geom_polygon() + coord_equal()
-testplot.income 
+#testplot.income<-ggplot(tracts.df, aes(long, lat, group = group, fill = income.med.hh)) + scale_fill_gradient2(low ='red', mid = "white", high = "dark green", 
+ #                      midpoint = 90000, space = "rgb", na.value = "white", 
+  #                     guide = ('colourbar'), guide_legend(title = 'Median Family Income')) + geom_polygon() + coord_equal()
+#testplot.income 
 
-par(mfrow=c(1,3))
-testplot.time
-testplot.race
-testplot.income
-par(mfrow = c(1,1))
+#par(mfrow=c(1,3))
+#testplot.time
+#testplot.race
+#testplot.income
+#par(mfrow = c(1,1))
 
 ```
 
 \clearpage
 
-## Census [census]
-
-The \textbf{census} dataset consists of the following fields:
-
-```{r results='asis', echo=FALSE}
-#census <- funCensus()
-#stargazer(census, summary=TRUE, header=FALSE, nobs=FALSE, digits=0, align=T, style='qje', title='Tract Level Summary Statistics')
-```
-
-The construction of the census table is documented in Table \ref{dt.census}. For more specifics see \textit{funCensus.income, funCensus.commute, funCensus.race} in the file \texttt{functions.segregation.R}. 
-
-```{r results='asis', echo=FALSE}
-#cap <- '2011-2015 ACS 5-Year Estimates, Geography: Tract'
-#x.out <- capture.output(print(xtable(funCensus.tables(), caption = cap, label='dt.census'),  include.rownames=FALSE, comment=FALSE, #caption.placement = 'top'))
-#cat(x.out,sep = '\n')
-```
-
-\clearpage
 
 # Measuring segregation
 
-We begin by estimating the amount of segregation in the city with a variety of traditional segregation measures (from the R library \texttt{seg})\footnote{Documentation and explaination at (http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0113767) and Reardon and O'Sullivan (2004)}. Interestingly, there have been a variety of measures which include a variety of spatial terms that uses information on neighbors and shared borders. These measures are, however, fundamentally different from our new one since spatial distance is a matrix that incorporates a variety travel times between tracts over the entire city. 
+In order to see how the bus route changes have affected local segregation levels, we need to measure the amount of segregation in Richmond before and after the changes took place. We begin by estimating the amount of segregation in the city with a variety of traditional segregation measures (from the R library \texttt{seg})\footnote{Documentation and explaination at (http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0113767) and Reardon and O'Sullivan (2004)}. Interestingly, there have been a variety of measures which include a variety of spatial terms that uses information on neighbors and shared borders. These measures are, however, fundamentally different from our new one since spatial distance is a matrix that incorporates a variety travel times between tracts over the entire city. 
 
 
 ## Dissimilarity
@@ -370,10 +452,15 @@ cat(x.out,sep = '\n')
 
 ## Wasserstein Measure
 
-Earth mover distance
+To calculate the segregation levels, accounting for both spatial and aspatial information, we have used the Wasserstein methd, also known as the Earth mover distance.
 
-```{r, eval=TRUE, results='asis'}
-#wasserstein <- funMeasures.wasserstein(census, l_dists_richmond)
+The two main drawbacks of the $D$ measure are the lack of spatial information (distance) between populations and the fact that there is no direction implied in the relationship. Next, we measure dissimilarity through a Wasserstein measure, which will include both the spatial information and has the ability to infer directional relationships in the form of an asymmetric graph. This is a two stage process and requires careful selection of counterfactuals.  We begin with the most simple formulation\footnote{The Wasserstein measure is found in the R  \texttt{transport} package.}.
+
+In order to infer the directed relationships from before and after the bus route changes, we have calculated the Wasserstein measurement for the weighted travel for blacks, whites, Asians, and Hispanics. Based on this measurement, the levels of segregations have decreased in Richmond for all races. This is for blacks because the bus route changes have had a net positive effect on the ease of residents in a primarily black neighborhood to travel to primarily white, Asian, and Hispanic neighborhoods, when we account for both the time and distance travelled and the relative percentage of people using the bus routes. This holds true for all four of the races. However, while segregation has decreased, there is still a substantial difference between the perceived segregation levels for blacks compared to the other races as evidenced by their consistently higher Wasserstein scores.
+
+
+```{r, eval=TRUE, results='asis', echo = FALSE}
+wasserstein <- funMeasures.wasserstein(census, l_dists_richmond)
 
 f_1 <- readRDS('CleanData/karl2017.rds')
 f_2 <- readRDS('CleanData/karl2019.rds')
@@ -391,22 +478,14 @@ wasserstein.final
 wasserstein.final<-wasserstein.final[,-3]
 wasserstein.final <- wasserstein.final[, pct_change:=(`2019`-`2017`)/`2017`]
 wasserstein.final <- wasserstein.final[order(pct_change)]
+
 stargazer(wasserstein.final)
 
 ```
 
-The two main drawbacks of the $D$ measure are the lack of spatial information (distance) between populations and the fact that there is no direction implied in the relationship. Next, we measure dissimilarity through a Wasserstein measure, which will include both the spatial information and has the ability to infer directional relationships in the form of an asymmetric graph. This is a two stage process and requires careful selection of counterfactuals.  We begin with the most simple formulation\footnote{The Wasserstein measure is found in the R  \texttt{transport} package.}.
 
 
-```{r merge_files_1}
-#f_1 <- readRDS('CleanData/karl2017.rds')
-#f_2 <- readRDS('CleanData/karl2019.rds')
-#dt <- rbindlist(list(f_1, f_2), use.names=TRUE)
+#Conclusion
 
-#dt_agg <- dt[, lapply(.SD, mean), by=.(origin.tract, year), .SDcols = c('driving', 'transit', 'walking', 'weighted')]
-
-#dt_cast <- dcast(dt_agg, origin.tract ~ year, value.var=c('driving', 'transit', 'walking', 'weighted'))
-#saveRDS(dt_cast, file='CleanData/karlMerge.rds')
-
-```
+In short, the Great Richmond Reroute has reduced segregation levels by improving the travel time around the city for the bus lanes. The reduced travel time on average makes up for the increased time walking to the new bus stops caused by the changes. This reduction in segregation levels would not be caught by traditional measurements that do not account for both the distance needed to travel and the time spent travelling from one community to the next. However, despite the reduction, there remains work  to be done to continue to reduce the city's relative segregation levels, as shown by the very different Wasserstein measurments for the different races.
 
