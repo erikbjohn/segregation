@@ -127,40 +127,49 @@ setnames(test_reg, 'origin.tract', 'id')
 census<-funCensus()
 setnames(census, 'tract', 'id')
 test.df<-join(test_reg,census, by = 'id')
-test.df$race.nohisp<-test.df$race.total.n-test.df$race.hispanic.n
-test.df$race.hisp.new<-test.df$race.hispanic.n-test.df$race.nohisp
-test.df$pct.black<-test.df$race.black.n/test.df$race.nohisp
-test.df$pct.white<-test.df$race.white.n/test.df$race.nohisp
-test.df$pct.asian<-test.df$race.asian.n/test.df$race.nohisp
+
+
+test.df$pct.black<-test.df$race.black.n/test.df$race.total.n
+test.df$pct.white<-test.df$race.white.n/test.df$race.total.n
+test.df$pct.asian<-test.df$race.asian.n/test.df$race.total.n
+test.df$pct.hisp<-test.df$race.hispanic.n/test.df$race.total.n
 
 target<-test.df$pct_increase
 pblack<-test.df$pct.black
 pwhite<-test.df$pct.white
 pasian<-test.df$pct.asian
-pBus<-test.df$bus.n/test.df$race.nohisp
+phisp<-test.df$pct.hisp
+pBus<-test.df$bus.n/test.df$race.total.n
 pAdmin<-test.df$industry.public.admin.n/test.df$industry.total.industry.n
-pCar<-test.df$car.n/test.df$race.nohisp
+pCar<-test.df$car.n/test.df$race.total.n
 black<-test.df$race.black.n
 medInc<-test.df$income.med.hh
 lBlack<-log(pblack)
 pblack100<-pblack*100
 pwhite100<-pwhite*100
+int.pbl.inc<-pblack*medInc
+int.pwh.inc<-pwhite*medInc
+int.pas.inc<-pasian*medInc
+target100<-target*100
 
-reg.test<-lm(target ~ pblack + pwhite + pBus) 
-#pblack is significant at 0.1, other two are barely not. what to do?
+reg.test<-lm(target ~ pblack + pwhite + medInc + int.pbl.inc + int.pwh.inc) 
+
 summary(reg.test)
+#Looks good with interraction
+
+
 
 stargazer(reg.test, summary=TRUE, header=FALSE, nobs=FALSE, digits=0, align=T, style='qje', title=paste0('Percent Change in Regression Summary'))
 
 reg.income<-lm(medInc ~ pblack100)
 summary(reg.income)
 
-stargazer(reg.income, summary=TRUE, header=FALSE, nobs=FALSE, digits=0, align=T, style='qje', title=paste0('Income Regression Summary'))
+#stargazer(reg.income, summary=TRUE, header=FALSE, nobs=FALSE, digits=0, align=T, style='qje', title=paste0('Income Regression Summary'))
 
 reg.bus<-lm(pBus ~ pblack)
 summary(reg.bus)
 
-stargazer(reg.bus, summary=TRUE, header=FALSE, nobs=FALSE, digits=0, align=T, style='qje', title=paste0('Bus Riders Regression Summary'))
+#stargazer(reg.bus, summary=TRUE, header=FALSE, nobs=FALSE, digits=0, align=T, style='qje', title=paste0('Bus Riders Regression Summary'))
 ```
 
 ``` {r results = 'asis', echo = FALSE}
@@ -240,10 +249,10 @@ shp_fortify <- fortify(shps, region='GEOID')
 test_transit<-join(test_transit,shp_fortify, by= 'id')
 test_transit <- test_transit[, cut_pct_increase:=pmin(pct_increase,0.02)]
 test_transit <- test_transit[, cut_pct_increase:=pmax(pct_increase,-0.02)]
-
+test_transit$cut_pct_increase<-test_transit$cut_pct_increase * 100
 testplot.time2<-ggplot(test_transit, aes(long, lat, group = group, fill = cut_pct_increase)) + scale_fill_gradient2(low ='dark green', mid = "white", high = "red", 
                        midpoint = 0.0, space = "rgb", na.value = "white", 
-                       guide = ('colourbar'), guide_legend(title = 'Pct Change in Travel Time')) + geom_polygon() + coord_equal()
+                       guide = ('colourbar'), guide_legend(title = 'Weighted Percent Change in Travel Time')) + geom_polygon() + coord_equal()
 testplot.time2
 
 
@@ -255,7 +264,13 @@ Nobody cares about public transportation because $u(x_1,x_2)$
 
 
 ```{r results='asis', echo=FALSE}
-dt_origin_changes <- dt_transit[, .(mean_pct_increase=mean(pct_increase), sd_pct_increase=sd(pct_increase)), by=origin.tract][order(-mean_pct_increase)]
+dt_agg2 <- dt[, lapply(.SD, mean), by=.(origin.tract, year), .SDcols = c('driving', 'transit', 'walking', 'weighted')]
+dt_cast2 <- dcast(dt_agg2, origin.tract ~ year, value.var=c('driving', 'transit', 'walking', 'weighted'))
+dt_transit2 <- dt_cast2[, .(origin.tract, seconds2017 = `transit_2017`, seconds2018 = `transit_2019`)]
+dt_transit2 <- dt_transit2[, pct_increase:=(seconds2018-seconds2017)/seconds2017]
+dt_transit2 <- dt_transit2[pct_increase != 0]
+
+dt_origin_changes <- dt_transit2[, .(mean_pct_increase=mean(pct_increase), sd_pct_increase=sd(pct_increase)), by=origin.tract][order(-mean_pct_increase)]
 
 #dt_origin_changes2 <- dt_transit[, .(mean_pct_increase=mean(pct_increase), sd_pct_increase=sd(pct_increase)), by=origin.tract]
 
@@ -268,32 +283,32 @@ dt_origin_changes <- dt_transit[, .(mean_pct_increase=mean(pct_increase), sd_pct
 shps <- funShapes.richmond.tracts()
 shp_fortify <- fortify(shps, region='GEOID')
 setnames(dt_origin_changes, 'origin.tract', 'id')
-dt_origin_changes <- dt_origin_changes[, cut_pct_increase:=pmin(mean_pct_increase,0.2)]
-dt_origin_changes <- dt_origin_changes[, cut_pct_increase:=pmax(cut_pct_increase,-0.2)]
+dt_origin_changes <- dt_origin_changes[, cut_pct_increase:=pmin(mean_pct_increase,0.25)]
+dt_origin_changes <- dt_origin_changes[, cut_pct_increase:=pmax(cut_pct_increase,-0.25)]
 tracts.df <- join(dt_origin_changes, shp_fortify, by='id')
 census <- funCensus()
 setnames(census, 'tract', 'id')
 tracts.df <- join(census, tracts.df, by='id')
 tracts.df$pct_black <- tracts.df$race.black.n/tracts.df$race.total.n
 
-tracts.df$totnohisp<-tracts.df$race.total.n-tracts.df$race.hispanic.n
-tracts.df$pct_black_no_hisp<-tracts.df$race.black.n/tracts.df$totnohisp
+#tracts.df$totnohisp<-tracts.df$race.total.n-tracts.df$race.hispanic.n
+#tracts.df$pct_black_no_hisp<-tracts.df$race.black.n/tracts.df$totnohisp
 
 
 
-tracts.df<-tracts.df[,cut_pct_black:=pmin(pct_black, 0.6)]
-tracts.df<-tracts.df[,cut_pct_black:=pmax(pct_black,0.0)]
+#tracts.df<-tracts.df[,cut_pct_black:=pmin(pct_black, 0.6)]
+#tracts.df<-tracts.df[,cut_pct_black:=pmax(pct_black,0.0)]
 #ggplot(tracts.df, aes(long, lat, group=group, fill=mean_pct_increase)) +  geom_polygon() + coord_equal() 
 #ggplot(tracts.df, aes(long,lat, group=group, fill=pct_black))+geom_polygon() + coord_equal()
 
 testplot.time<-ggplot(tracts.df, aes(long, lat, group = group, fill = cut_pct_increase)) + scale_fill_gradient2(low ='dark green', mid = "white", high = "red", 
                        midpoint = 0.0, space = "rgb", na.value = "white", 
-                       guide = ('colourbar'), guide_legend(title = 'Pct Change in Travel Time')) + geom_polygon() + coord_equal()
-testplot.time
+                       guide = ('colourbar'), guide_legend(title = 'Percent Change in Transit Travel Time')) + geom_polygon() + coord_equal()
+testplot.time #different than before? Not as clear?
 
-testplot.race<-ggplot(tracts.df, aes(long, lat, group = group, fill = pct_black_no_hisp)) + scale_fill_gradient2(low ='dark green', mid = "white", high = "red", 
+testplot.race<-ggplot(tracts.df, aes(long, lat, group = group, fill = pct_black)) + scale_fill_gradient2(low ='dark green', mid = "white", high = "red", 
                        midpoint = 0.4, space = "rgb", na.value = "white", 
-                       guide = ('colourbar'), guide_legend(title = 'Pct of Population is Black')) + geom_polygon() + coord_equal()
+                       guide = ('colourbar'), guide_legend(title = 'Percent of Population is Black')) + geom_polygon() + coord_equal()
 testplot.race #Race is screwed up, with a very low max for pct_black, need to use no_hisp
 
 testplot.income<-ggplot(tracts.df, aes(long, lat, group = group, fill = income.med.hh)) + scale_fill_gradient2(low ='red', mid = "white", high = "dark green", 
